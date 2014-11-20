@@ -1,0 +1,10 @@
+{
+  "slideType": "Welcome",
+  "title": "Video About Artem",
+  "name": "Artem Prokhatskyi",
+  "position": "Developer",
+  "videoService": "YouTube",
+  "videoURL": "https://www.youtube.com/watch?v=ffkzOXmzb7k",
+  "description": "Hello World!",
+  "imageSrc": "http://placehold.it/300x300&text=Artem"
+}

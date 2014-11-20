@@ -1,6 +1,6 @@
 'use strict';
 
-tvapp.controller('adminSlidesCtrl', function($scope, $http, SERVICES) {
+tvapp.controller('adminSlidesCtrl', function($rootScope, $scope, $http, SERVICES) {
     $scope.gridType = {
         value: 'Table',
         values: ['Table', 'Grid']

@@ -1,16 +1,19 @@
 <div class="container">
+    <h3>List of Slides:</h3>
+
     <div class="panel panel-default">
         <div class="panel-heading">
-            <div class="row">
-                <div class="col-md-6">List of slides:</div>
+            <div class="row form-horizontal">
+                <label class="col-md-6 control-label" for="gridView">Grid View:</label>
                 <div class="col-md-2">
                     <select class="form-control"
+                            id="gridView"
                             ng-model="gridType.value"
                             ng-options="v for v in gridType.values">
                     </select>
                 </div>
-                <div class="col-md-1">Filter:</div>
-                <div class="col-md-3"><input class="form-control" type="text" ng-model="filterString" /></div>
+                <label class="col-md-1 control-label" for="filter">Filter:</label>
+                <div class="col-md-3"><input class="form-control" type="text" ng-model="filterString" id="filter"/></div>
             </div>
         </div>
 
