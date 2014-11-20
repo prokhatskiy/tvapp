@@ -1,0 +1,28 @@
+<div class="container">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <div class="row">
+                <div class="col-md-8">List of slides:</div>
+                <div class="col-md-1">Filter:</div>
+                <div class="col-md-3"><input class="form-control" type="text" ng-model="query" /></div>
+            </div>
+        </div>
+
+        <!-- List of slides BEGIN-->
+        <table class="table">
+            <tr>
+                <td ng-repeat="head in tableHead">{{head.title}}</td>
+            </tr>
+
+            <tr ng-repeat="slide in slides | filter:query">
+                <td>{{slide.id}}</td>
+                <td>{{slide.title}}</td>
+                <td>{{slide.type}}</td>
+                <td>{{slide.date}}</td>
+                <td>{{slide.isActive}}</td>
+            </tr>
+        </table>
+        <!-- LIst od slides END -->
+    </div>
+
+</div>
