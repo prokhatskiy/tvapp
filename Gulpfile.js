@@ -10,13 +10,17 @@ var connect = require('gulp-connect');
 var open = require('gulp-open');
 
 var config = {
+    port : 8000,
+
     components : [
-      'bower_components/angular/angular.js',
-      'bower_components/jquery/dist/jquery.js'
+        'bower_components/angular/angular.js',
+        'bower_components/jquery/dist/jquery.js',
+        'bower_components/angular-route/angular-route.js'
     ],
 
     app : [
-        'js/app/**'
+        'js/app/*.js',
+        'js/controllers/*.js'
     ],
 
     jsDist : 'js',
@@ -40,7 +44,6 @@ var config = {
 gulp.task('js:components', function() {
     //concat components
     return gulp.src(config.components)
-        .pipe(uglify())
         .pipe(concat('components.js'))
         .pipe(gulp.dest(config.jsDist));
 });
@@ -72,7 +75,7 @@ gulp.task('stylus', function() {
 //server
 gulp.task('connect', function() {
     connect.server({
-        port: 8000
+        port: config.port
     });
 });
 
@@ -80,7 +83,7 @@ gulp.task('connect', function() {
 gulp.task('watch', function() {
     gulp.src('./index.html')
         .pipe(open('', {
-            url: 'http://localhost:8000'
+            url: 'http://localhost:' + config.port
         }));
 
     gulp.watch('styl/**', ['stylus']);

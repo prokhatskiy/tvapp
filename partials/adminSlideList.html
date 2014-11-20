@@ -2,27 +2,58 @@
     <div class="panel panel-default">
         <div class="panel-heading">
             <div class="row">
-                <div class="col-md-8">List of slides:</div>
+                <div class="col-md-6">List of slides:</div>
+                <div class="col-md-2">
+                    <select class="form-control"
+                            ng-model="gridType.value"
+                            ng-options="v for v in gridType.values">
+                    </select>
+                </div>
                 <div class="col-md-1">Filter:</div>
-                <div class="col-md-3"><input class="form-control" type="text" ng-model="query" /></div>
+                <div class="col-md-3"><input class="form-control" type="text" ng-model="filterString" /></div>
             </div>
         </div>
 
-        <!-- List of slides BEGIN-->
-        <table class="table">
-            <tr>
-                <td ng-repeat="head in tableHead">{{head.title}}</td>
-            </tr>
+        <div ng-show="(gridType.value == 'Grid')">
+            <div class="row">
+                <div class="col-md-4" ng-repeat="slide in slides | filter:filterString">
+                    <div class="thumbnail">
+                        <a href="#{{ROUTES.ADMIN_EDIT}}/{{slide.id}}"><img src="{{slide.src || 'http://placehold.it/300x300&text=placeholder'}}" alt="{{slide.title}}"></a>
+                        <div class="caption">
+                            <div>id: {{slide.id}}</div>
+                            <div>title: {{slide.title}}</div>
+                            <div>type: {{slide.type}}</div>
+                            <div>active: {{slide.isActive}}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-            <tr ng-repeat="slide in slides | filter:query">
-                <td>{{slide.id}}</td>
-                <td>{{slide.title}}</td>
-                <td>{{slide.type}}</td>
-                <td>{{slide.date}}</td>
-                <td>{{slide.isActive}}</td>
-            </tr>
-        </table>
-        <!-- LIst od slides END -->
+        <div ng-show="gridType.value == 'Table'">
+            <table class="table">
+                <tr>
+                    <th>id</th>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Active</th>
+                </tr>
+                <tr ng-repeat="slide in slides | filter:filterString">
+                    <td>
+                        {{slide.id}}
+                    </td>
+                    <td>
+                        <a href="#{{ROUTES.ADMIN_EDIT}}/{{slide.id}}">{{slide.title}}</a>
+                    </td>
+                    <td>
+                        {{slide.type}}
+                    </td>
+                    <td>
+                        {{slide.isActive}}
+                    </td>
+                </tr>
+            </table>
+        </div>
+
     </div>
-
 </div>
