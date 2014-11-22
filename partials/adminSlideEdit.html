@@ -52,7 +52,7 @@
         <div class="form-group" ng-show="currentData.slideType == 'Welcome'">
             <label for="unit" class="col-sm-2 control-label">Start Date:</label>
             <div class="col-sm-10">
-                <input type="text" class="form-control" id="unit" ng-model="currentData.startDate">
+                <input type="text" class="form-control" id="unit" ng-model="currentData.startDate" ui-date>
             </div>
         </div>
         <div class="form-group" ng-show="currentData.slideType">
@@ -77,10 +77,10 @@
         <div class="form-group" ng-show="currentData.slideType == 'Birthdays'">
             <label for="dateRangeStart"  class="col-sm-2 control-label">Date Range</label>
             <div class="col-sm-3" style="text-align: center;">
-                <input type="text" class="form-control" id="dateRangeStart" ng-model="currentData.dateRangeStart" placeholder="Start Date">
+                <input type="text" class="form-control" id="dateRangeStart" ng-model="currentData.dateRangeStart" placeholder="Start Date" ui-date>
             </div>
             <div class="col-sm-3" style="text-align: center;">
-                <input type="text" class="form-control" id="dateRangeEnd" ng-model="currentData.dateRangeEnd" placeholder="End Date">
+                <input type="text" class="form-control" id="dateRangeEnd" ng-model="currentData.dateRangeEnd" placeholder="End Date" ui-date>
             </div>
         </div>
         <div class="form-group" ng-show="currentData.slideType == 'Birthdays'" ng-repeat="item in currentData.employeeNames track by $index">
@@ -89,7 +89,7 @@
                 <input type="text" class="form-control" id="employee-name-{{$index}}" ng-model="currentData.employeeNames[$index].name" placeholder="Name">
             </div>
             <div class="col-sm-3">
-                <input type="text" class="form-control" id="employee-date-{{$index}}" ng-model="currentData.employeeNames[$index].date" placeholder="Birthday Date">
+                <input type="text" class="form-control" id="employee-date-{{$index}}" ng-model="currentData.employeeNames[$index].date" placeholder="Birthday Date" ui-date>
             </div>
         </div>
         <div class="form-group" ng-show="currentData.slideType == 'Birthdays'">

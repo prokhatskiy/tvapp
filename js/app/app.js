@@ -1,6 +1,6 @@
 'use strict';
 
-var tvapp = angular.module('tvapp', ['ngRoute']);
+var tvapp = angular.module('tvapp', ['ngRoute', 'ui.date']);
 
 tvapp
     .constant('APP_CONST', (function() {
