@@ -4,22 +4,7 @@ tvapp.controller('adminSlidesCtrl', function($rootScope, $scope, $http, SERVICES
     $scope.gridType = {
         value: 'Table',
         values: ['Table', 'Grid']
-    }
-
-    $scope.gridTypes = [
-        {
-            value: 'table',
-            name: 'Table'
-        },
-        {
-            value: 'smallGrid',
-            name: 'Small Grid'
-        },
-        {
-            value: 'largeGrid',
-            name: 'Large Grid'
-        }
-    ];
+    };
 
     $scope.slides = [];
 

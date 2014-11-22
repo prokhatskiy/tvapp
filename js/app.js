@@ -39,23 +39,24 @@ tvapp
     }]);
 'use strict';
 
-tvapp.controller('adminEditCtrl', ["$rootScope", "$scope", "$routeParams", "$http", "SERVICES", function($rootScope, $scope, $routeParams, $http, SERVICES) {
+tvapp.controller('adminEditCtrl', ["$scope", "$routeParams", "$http", "SERVICES", function($scope, $routeParams, $http, SERVICES) {
+    //config
     var slideData = {
         slideType: 'Welcome',
-        slideTypes: ['Welcome', 'Success', 'Video'],
+        slideTypes: ['Welcome', 'Success', 'Birthdays', 'Video'],
         videoService: 'YouTube',
-        videoServices: ['YouTube', 'Vimeo', 'facebook.com', 'vk.com']
+        videoServices: ['YouTube', 'Vimeo'],
+        employeeNames: [{'name' : '', date: ''}]
     };
 
-    $scope.revert = revert;
     $scope.isChanged = false;
 
+    //extend model
     if($routeParams.id) {
         $http.get(SERVICES.SLIDE).
             success(function(data) {
                 slideData = angular.extend(slideData, data);
-                $scope.currentData = slideData;
-                $scope.$watch('currentData', watch);
+                $scope.currentData = angular.copy(slideData);
             }).
             error(function() {
                 console.log('fail');
@@ -63,11 +64,19 @@ tvapp.controller('adminEditCtrl', ["$rootScope", "$scope", "$routeParams", "$htt
     }
     else {
         $scope.isNewItem = true;
-        $scope.currentData = slideData;
+        $scope.currentData = angular.copy(slideData);
     }
 
-    var revert = function revert() {
+    $scope.save = function save() {
+        console.log($scope.currentData);
+    };
 
+    $scope.revert = function revert() {
+        $scope.currentData = angular.copy(slideData);
+    };
+
+    $scope.addEmployee = function addEmployee() {
+        $scope.currentData.employeeNames.push({'name' : '', date: ''});
     };
 }]);
 
@@ -77,22 +86,7 @@ tvapp.controller('adminSlidesCtrl', ["$rootScope", "$scope", "$http", "SERVICES"
     $scope.gridType = {
         value: 'Table',
         values: ['Table', 'Grid']
-    }
-
-    $scope.gridTypes = [
-        {
-            value: 'table',
-            name: 'Table'
-        },
-        {
-            value: 'smallGrid',
-            name: 'Small Grid'
-        },
-        {
-            value: 'largeGrid',
-            name: 'Large Grid'
-        }
-    ];
+    };
 
     $scope.slides = [];
 

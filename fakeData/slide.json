@@ -1,10 +1,21 @@
 {
-  "slideType": "Welcome",
+  "id": 234,
+  "slideType": "Birthdays",
   "title": "Video About Artem",
   "name": "Artem Prokhatskyi",
   "position": "Developer",
   "videoService": "YouTube",
   "videoURL": "https://www.youtube.com/watch?v=ffkzOXmzb7k",
   "description": "Hello World!",
-  "imageSrc": "http://placehold.it/300x300&text=Artem"
+  "imageSrc": "http://placehold.it/300x300&text=Artem",
+  "employeeNames": [
+    {
+      "name": "test",
+      "date": 123213213213213
+    },
+    {
+      "name": "test 1",
+      "date": 1232131231
+    }
+  ]
 }
