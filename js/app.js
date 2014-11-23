@@ -41,15 +41,25 @@ tvapp
 
 tvapp.controller('adminEditCtrl', ["$scope", "$routeParams", "$http", "SERVICES", function($scope, $routeParams, $http, SERVICES) {
     //config
-    var slideData = {
+    var defaults = {
         slideType: 'Welcome',
         slideTypes: ['Welcome', 'Success', 'Birthdays', 'Video'],
-        videoService: 'YouTube',
-        videoServices: ['YouTube', 'Vimeo'],
         employeeNames: [{'name' : '', date: ''}]
     };
 
+    var slideData = angular.copy(defaults);
+    $scope.currentData = angular.copy(defaults);
+    $scope.isNewItem = true;
     $scope.isChanged = false;
+
+    $scope.$watchCollection('currentData', function() {
+        if(angular.equals($scope.currentData, slideData)) {
+            $scope.isChanged = false;
+        }
+        else {
+            $scope.isChanged = true;
+        }
+    });
 
     //extend model
     if($routeParams.id) {
@@ -57,14 +67,11 @@ tvapp.controller('adminEditCtrl', ["$scope", "$routeParams", "$http", "SERVICES"
             success(function(data) {
                 slideData = angular.extend(slideData, data);
                 $scope.currentData = angular.copy(slideData);
-            }).
-            error(function() {
+                $scope.isNewItem = false;
+            })
+            .error(function() {
                 console.log('fail');
             });
-    }
-    else {
-        $scope.isNewItem = true;
-        $scope.currentData = angular.copy(slideData);
     }
 
     $scope.save = function save() {
@@ -73,6 +80,7 @@ tvapp.controller('adminEditCtrl', ["$scope", "$routeParams", "$http", "SERVICES"
 
     $scope.revert = function revert() {
         $scope.currentData = angular.copy(slideData);
+        $scope.isChanged = false;
     };
 
     $scope.addEmployee = function addEmployee() {
