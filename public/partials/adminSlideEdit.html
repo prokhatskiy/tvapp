@@ -94,7 +94,7 @@
         <div class="form-group" ng-show="(currentData.slideType == 'Welcome') || (currentData.slideType == 'Success')">
             <label for="photoFile" class="col-sm-2 control-label">Change Photo</label>
             <div class="col-sm-9" style="text-align: center;">
-                <input type="file" class="form-control" id="photoFile">
+                <input type="file" class="form-control" id="photoFile" ng-model="imageSrc">
             </div>
             <div class="col-sm-1" style="text-align: center;">
                 <button type="button" class="btn btn-default" ng-click="uploadPhoto()">Upload</button>
@@ -106,6 +106,12 @@
                 <button type="button" class="btn btn-danger" ng-hide="isNewItem" ng-click="revert()" ng-disabled="!isChanged">Revert</button>
                 <button type="button" class="btn btn-danger" ng-show="isNewItem" ng-click="revert()" ng-disabled="!isChanged">Clear</button>
             </div>
+        </div>
+        <div class="row" ng-show="showMessage">
+            <div class="panel panel-success"><div class="panel-heading">{{showMessage}}</div></div>
+        </div>
+        <div class="row" ng-show="showError">
+            <div class="panel panel-danger"><div class="panel-heading">{{showError}}</div></div>
         </div>
     </form>
 </div>

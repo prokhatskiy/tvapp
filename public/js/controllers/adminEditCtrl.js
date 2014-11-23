@@ -1,6 +1,6 @@
 'use strict';
 
-tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES) {
+tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES, $timeout) {
     //config
     var defaults = {
         slideType: 'Welcome',
@@ -12,6 +12,9 @@ tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES
     $scope.currentData = angular.copy(defaults);
     $scope.isNewItem = true;
     $scope.isChanged = false;
+    $scope.imageSrc = '';
+    $scope.showMessage = false;
+    $scope.showError = false;
 
     $scope.$watchCollection('currentData', function() {
         if(angular.equals($scope.currentData, slideData)) {
@@ -24,19 +27,29 @@ tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES
 
     //extend model
     if($routeParams.id) {
-        $http.get(SERVICES.SLIDE).
+        $http.get(SERVICES.GET_SLIDE).
             success(function(data) {
                 slideData = angular.extend(slideData, data);
                 $scope.currentData = angular.copy(slideData);
                 $scope.isNewItem = false;
             })
             .error(function() {
-                console.log('fail');
+                showError('Fail!!!');
             });
     }
 
+    $scope.uploadPhoto = function uploadPhoto() {
+        console.log($scope.imageSrc);
+    };
+
     $scope.save = function save() {
-        console.log($scope.currentData);
+        $http.post(SERVICES.POST_SLIDE, prepareData($scope.currentData))
+            .success(function() {
+                showMessage('Saved!!!');
+            })
+            .error(function() {
+                showError('Fail!!!');
+            });
     };
 
     $scope.revert = function revert() {
@@ -46,5 +59,23 @@ tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES
 
     $scope.addEmployee = function addEmployee() {
         $scope.currentData.employeeNames.push({'name' : '', date: ''});
+    };
+
+    var prepareData = function prepareData(data) {
+        return data;
+    };
+
+    var showMessage = function showMessage(message) {
+        $scope.showMessage = message;
+        setTimeout(function() {
+            $scope.showMessage = false;
+        }, 5000);
+    };
+
+    var showError = function showMessage(error) {
+        $scope.showError = error;
+        $timeout(function() {
+            $scope.showError = false;
+        }, 5000);
     };
 });

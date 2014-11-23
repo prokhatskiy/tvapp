@@ -19,8 +19,11 @@ tvapp
     .constant('SERVICES', (function() {
         return {
             ADMIN_SLIDES: '/fakeData/list.json',
-            TIMELINE: '/fakeData/timeline.json',
-            SLIDE: '/fakeData/slide.json'
+            GET_TIMELINE: '/fakeData/timeline.json',
+            POST_TIMELINE: '/fakeData/timeline.json',
+            GET_SLIDE: '/fakeData/slide.json',
+            POST_SLIDE: '/fakeData/slide.json',
+            UPLOAD_IMG: '/fakeData/src.json'
         }
     }()))
     .run(function($rootScope, APP_CONST, ROUTES) {

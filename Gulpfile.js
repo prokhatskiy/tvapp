@@ -6,29 +6,29 @@ var stylus = require('gulp-stylus');
 var es = require('event-stream');
 var uglify = require('gulp-uglify');
 var autoprefixer = require('gulp-autoprefixer');
-var connect = require('gulp-connect');
-var open = require('gulp-open');
+var server = require('gulp-express');
+
 
 var config = {
-    port : 8000,
+    port : 3000,
 
     components : [
-        'bower_components/jquery/dist/jquery.js',
-        'bower_components/jquery-ui/jquery-ui.js',
-        'bower_components/bootstrap/dist/js/bootstrap.js',
-        'bower_components/angular/angular.js',
-        'bower_components/angular-route/angular-route.js',
-        'bower_components/angular-ui-date/src/date.js'
+        'public/bower_components/jquery/dist/jquery.js',
+        'public/bower_components/jquery-ui/jquery-ui.js',
+        'public/bower_components/bootstrap/dist/js/bootstrap.js',
+        'public/bower_components/angular/angular.js',
+        'public/bower_components/angular-route/angular-route.js',
+        'public/bower_components/angular-ui-date/src/date.js'
     ],
 
     app : [
-        'js/app/*.js',
-        'js/controllers/*.js'
+        'public/js/app/*.js',
+        'public/js/controllers/*.js'
     ],
 
-    jsDist : 'js',
+    jsDist : 'public/js',
     jsFileName : 'scripts.js',
-    cssDist : 'css',
+    cssDist : 'public/css',
     cssFileName : 'styles.css',
 
     stylusOptions : {
@@ -75,24 +75,23 @@ gulp.task('stylus', function() {
         .pipe(gulp.dest(config.cssDist))
 });
 
-//server
-gulp.task('connect', function() {
-    connect.server({
-        port: config.port
+gulp.task('server', function () {
+    // Start the server at the beginning of the task
+    server.run({
+        file: './bin/www'
     });
+
+    // Restart the server when file changes
+    gulp.watch(['app/**/*.html'], server.notify);
+    gulp.watch(['app.js', 'routes/**/*.js', 'views/**/*.js'], [server.run]);
 });
 
 //watcher
 gulp.task('watch', function() {
-    gulp.src('./index.html')
-        .pipe(open('', {
-            url: 'http://localhost:' + config.port
-        }));
-
-    gulp.watch('styl/**', ['stylus']);
+    gulp.watch('public/styl/**', ['stylus']);
     gulp.watch(config.components, ['js:components']);
     gulp.watch(config.app, ['js:app']);
 });
 
-gulp.task('default', ['connect', 'js:components', 'js:app', 'stylus', 'watch']);
+gulp.task('default', ['server', 'js:components', 'js:app', 'stylus', 'watch']);
 
