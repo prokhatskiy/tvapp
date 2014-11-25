@@ -67,7 +67,7 @@ tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES
 
     var showMessage = function showMessage(message) {
         $scope.showMessage = message;
-        setTimeout(function() {
+        $timeout(function() {
             $scope.showMessage = false;
         }, 5000);
     };
