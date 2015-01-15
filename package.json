@@ -15,7 +15,9 @@
     "jade": "~1.6.0"
   },
   "devDependencies": {
+    "crypto": "0.0.3",
     "gulp-express": "^0.1.1",
-    "gulp-shell": "^0.2.10"
+    "gulp-shell": "^0.2.10",
+    "mongoose": "^3.8.19"
   }
 }

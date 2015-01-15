@@ -13,12 +13,15 @@ var config = {
     port : 3000,
 
     components : [
+        'public/bower_components/underscore/underscore.js',
         'public/bower_components/jquery/dist/jquery.js',
         'public/bower_components/jquery-ui/jquery-ui.js',
         'public/bower_components/bootstrap/dist/js/bootstrap.js',
         'public/bower_components/angular/angular.js',
         'public/bower_components/angular-route/angular-route.js',
-        'public/bower_components/angular-ui-date/src/date.js'
+        'public/bower_components/angular-ui-date/src/date.js',
+        'public/bower_components/ng-sortable/dist/ng-sortable.js',
+        'public/bower_components/angular-cookies/angular-cookies.js'
     ],
 
     app : [
@@ -82,8 +85,8 @@ gulp.task('server', function () {
     });
 
     // Restart the server when file changes
-    gulp.watch(['app/**/*.html'], server.notify);
-    gulp.watch(['app.js', 'routes/**/*.js', 'views/**/*.js'], [server.run]);
+    //gulp.watch(['app/**/*.html'], server.notify);
+    //gulp.watch(['app.js', 'routes/**/*.js', 'views/**/*.js'], [server.run]);
 });
 
 //watcher
