@@ -1,11 +1,11 @@
 'use strict';
 
-tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES, $timeout) {
+tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES, $timeout, $location, ROUTES) {
     //config
     var defaults = {
         slideType: 'Welcome',
         slideTypes: ['Welcome', 'Success', 'Birthdays', 'Video'],
-        employeeNames: [{'name' : '', date: ''}]
+        employees: [{'name' : '', date: ''}]
     };
 
     var slideData = angular.copy(defaults);
@@ -17,24 +17,37 @@ tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES
     $scope.showError = false;
 
     $scope.$watchCollection('currentData', function() {
-        if(angular.equals($scope.currentData, slideData)) {
-            $scope.isChanged = false;
-        }
-        else {
-            $scope.isChanged = true;
-        }
+        $scope.isChanged = !angular.equals($scope.currentData, slideData);
     });
 
     //extend model
     if($routeParams.id) {
-        $http.get(SERVICES.GET_SLIDE).
-            success(function(data) {
+        $http.get(SERVICES.GET_SLIDE + '/' + $routeParams.id)
+            .success(function(data) {
                 slideData = angular.extend(slideData, data);
                 $scope.currentData = angular.copy(slideData);
                 $scope.isNewItem = false;
             })
-            .error(function() {
-                showError('Fail!!!');
+            .error(function(data, status) {
+                switch (status) {
+                    case 401:
+                        $location.path(ROUTES.LOGIN_ROOT);
+                        break;
+                    default:
+                        showError('Slide cannot be loaded.' + 'Status code: ' + status);
+                }
+            });
+    }
+    else {
+        $http.get(SERVICES.CHECK_ACCESS)
+            .error(function(data, status) {
+                switch (status) {
+                    case 401:
+                        $location.path(ROUTES.LOGIN_ROOT);
+                        break;
+                    default:
+                        showError('Cannot check access.' + 'Status code: ' + status);
+                }
             });
     }
 
@@ -43,12 +56,18 @@ tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES
     };
 
     $scope.save = function save() {
-        $http.post(SERVICES.POST_SLIDE, prepareData($scope.currentData))
+        $http.post(SERVICES.POST_SLIDE, $scope.currentData)
             .success(function() {
-                showMessage('Saved!!!');
+                showMessage('This slide is saved.');
             })
-            .error(function() {
-                showError('Fail!!!');
+            .error(function(data, status) {
+                switch (status) {
+                    case 401:
+                        $location.path(ROUTES.LOGIN_ROOT);
+                        break;
+                    default:
+                        showError('This slide is not saved. Please, see console for details. Status code: ' + status);
+                }
             });
     };
 
@@ -58,11 +77,7 @@ tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES
     };
 
     $scope.addEmployee = function addEmployee() {
-        $scope.currentData.employeeNames.push({'name' : '', date: ''});
-    };
-
-    var prepareData = function prepareData(data) {
-        return data;
+        $scope.currentData.employees.push({name : '', date: ''});
     };
 
     var showMessage = function showMessage(message) {
@@ -72,7 +87,7 @@ tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES
         }, 5000);
     };
 
-    var showError = function showMessage(error) {
+    var showError = function showError(error) {
         $scope.showError = error;
         $timeout(function() {
             $scope.showError = false;

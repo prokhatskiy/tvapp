@@ -1,3 +1,1419 @@
+//     Underscore.js 1.7.0
+//     http://underscorejs.org
+//     (c) 2009-2014 Jeremy Ashkenas, DocumentCloud and Investigative Reporters & Editors
+//     Underscore may be freely distributed under the MIT license.
+
+(function() {
+
+  // Baseline setup
+  // --------------
+
+  // Establish the root object, `window` in the browser, or `exports` on the server.
+  var root = this;
+
+  // Save the previous value of the `_` variable.
+  var previousUnderscore = root._;
+
+  // Save bytes in the minified (but not gzipped) version:
+  var ArrayProto = Array.prototype, ObjProto = Object.prototype, FuncProto = Function.prototype;
+
+  // Create quick reference variables for speed access to core prototypes.
+  var
+    push             = ArrayProto.push,
+    slice            = ArrayProto.slice,
+    concat           = ArrayProto.concat,
+    toString         = ObjProto.toString,
+    hasOwnProperty   = ObjProto.hasOwnProperty;
+
+  // All **ECMAScript 5** native function implementations that we hope to use
+  // are declared here.
+  var
+    nativeIsArray      = Array.isArray,
+    nativeKeys         = Object.keys,
+    nativeBind         = FuncProto.bind;
+
+  // Create a safe reference to the Underscore object for use below.
+  var _ = function(obj) {
+    if (obj instanceof _) return obj;
+    if (!(this instanceof _)) return new _(obj);
+    this._wrapped = obj;
+  };
+
+  // Export the Underscore object for **Node.js**, with
+  // backwards-compatibility for the old `require()` API. If we're in
+  // the browser, add `_` as a global object.
+  if (typeof exports !== 'undefined') {
+    if (typeof module !== 'undefined' && module.exports) {
+      exports = module.exports = _;
+    }
+    exports._ = _;
+  } else {
+    root._ = _;
+  }
+
+  // Current version.
+  _.VERSION = '1.7.0';
+
+  // Internal function that returns an efficient (for current engines) version
+  // of the passed-in callback, to be repeatedly applied in other Underscore
+  // functions.
+  var createCallback = function(func, context, argCount) {
+    if (context === void 0) return func;
+    switch (argCount == null ? 3 : argCount) {
+      case 1: return function(value) {
+        return func.call(context, value);
+      };
+      case 2: return function(value, other) {
+        return func.call(context, value, other);
+      };
+      case 3: return function(value, index, collection) {
+        return func.call(context, value, index, collection);
+      };
+      case 4: return function(accumulator, value, index, collection) {
+        return func.call(context, accumulator, value, index, collection);
+      };
+    }
+    return function() {
+      return func.apply(context, arguments);
+    };
+  };
+
+  // A mostly-internal function to generate callbacks that can be applied
+  // to each element in a collection, returning the desired result — either
+  // identity, an arbitrary callback, a property matcher, or a property accessor.
+  _.iteratee = function(value, context, argCount) {
+    if (value == null) return _.identity;
+    if (_.isFunction(value)) return createCallback(value, context, argCount);
+    if (_.isObject(value)) return _.matches(value);
+    return _.property(value);
+  };
+
+  // Collection Functions
+  // --------------------
+
+  // The cornerstone, an `each` implementation, aka `forEach`.
+  // Handles raw objects in addition to array-likes. Treats all
+  // sparse array-likes as if they were dense.
+  _.each = _.forEach = function(obj, iteratee, context) {
+    if (obj == null) return obj;
+    iteratee = createCallback(iteratee, context);
+    var i, length = obj.length;
+    if (length === +length) {
+      for (i = 0; i < length; i++) {
+        iteratee(obj[i], i, obj);
+      }
+    } else {
+      var keys = _.keys(obj);
+      for (i = 0, length = keys.length; i < length; i++) {
+        iteratee(obj[keys[i]], keys[i], obj);
+      }
+    }
+    return obj;
+  };
+
+  // Return the results of applying the iteratee to each element.
+  _.map = _.collect = function(obj, iteratee, context) {
+    if (obj == null) return [];
+    iteratee = _.iteratee(iteratee, context);
+    var keys = obj.length !== +obj.length && _.keys(obj),
+        length = (keys || obj).length,
+        results = Array(length),
+        currentKey;
+    for (var index = 0; index < length; index++) {
+      currentKey = keys ? keys[index] : index;
+      results[index] = iteratee(obj[currentKey], currentKey, obj);
+    }
+    return results;
+  };
+
+  var reduceError = 'Reduce of empty array with no initial value';
+
+  // **Reduce** builds up a single result from a list of values, aka `inject`,
+  // or `foldl`.
+  _.reduce = _.foldl = _.inject = function(obj, iteratee, memo, context) {
+    if (obj == null) obj = [];
+    iteratee = createCallback(iteratee, context, 4);
+    var keys = obj.length !== +obj.length && _.keys(obj),
+        length = (keys || obj).length,
+        index = 0, currentKey;
+    if (arguments.length < 3) {
+      if (!length) throw new TypeError(reduceError);
+      memo = obj[keys ? keys[index++] : index++];
+    }
+    for (; index < length; index++) {
+      currentKey = keys ? keys[index] : index;
+      memo = iteratee(memo, obj[currentKey], currentKey, obj);
+    }
+    return memo;
+  };
+
+  // The right-associative version of reduce, also known as `foldr`.
+  _.reduceRight = _.foldr = function(obj, iteratee, memo, context) {
+    if (obj == null) obj = [];
+    iteratee = createCallback(iteratee, context, 4);
+    var keys = obj.length !== + obj.length && _.keys(obj),
+        index = (keys || obj).length,
+        currentKey;
+    if (arguments.length < 3) {
+      if (!index) throw new TypeError(reduceError);
+      memo = obj[keys ? keys[--index] : --index];
+    }
+    while (index--) {
+      currentKey = keys ? keys[index] : index;
+      memo = iteratee(memo, obj[currentKey], currentKey, obj);
+    }
+    return memo;
+  };
+
+  // Return the first value which passes a truth test. Aliased as `detect`.
+  _.find = _.detect = function(obj, predicate, context) {
+    var result;
+    predicate = _.iteratee(predicate, context);
+    _.some(obj, function(value, index, list) {
+      if (predicate(value, index, list)) {
+        result = value;
+        return true;
+      }
+    });
+    return result;
+  };
+
+  // Return all the elements that pass a truth test.
+  // Aliased as `select`.
+  _.filter = _.select = function(obj, predicate, context) {
+    var results = [];
+    if (obj == null) return results;
+    predicate = _.iteratee(predicate, context);
+    _.each(obj, function(value, index, list) {
+      if (predicate(value, index, list)) results.push(value);
+    });
+    return results;
+  };
+
+  // Return all the elements for which a truth test fails.
+  _.reject = function(obj, predicate, context) {
+    return _.filter(obj, _.negate(_.iteratee(predicate)), context);
+  };
+
+  // Determine whether all of the elements match a truth test.
+  // Aliased as `all`.
+  _.every = _.all = function(obj, predicate, context) {
+    if (obj == null) return true;
+    predicate = _.iteratee(predicate, context);
+    var keys = obj.length !== +obj.length && _.keys(obj),
+        length = (keys || obj).length,
+        index, currentKey;
+    for (index = 0; index < length; index++) {
+      currentKey = keys ? keys[index] : index;
+      if (!predicate(obj[currentKey], currentKey, obj)) return false;
+    }
+    return true;
+  };
+
+  // Determine if at least one element in the object matches a truth test.
+  // Aliased as `any`.
+  _.some = _.any = function(obj, predicate, context) {
+    if (obj == null) return false;
+    predicate = _.iteratee(predicate, context);
+    var keys = obj.length !== +obj.length && _.keys(obj),
+        length = (keys || obj).length,
+        index, currentKey;
+    for (index = 0; index < length; index++) {
+      currentKey = keys ? keys[index] : index;
+      if (predicate(obj[currentKey], currentKey, obj)) return true;
+    }
+    return false;
+  };
+
+  // Determine if the array or object contains a given value (using `===`).
+  // Aliased as `include`.
+  _.contains = _.include = function(obj, target) {
+    if (obj == null) return false;
+    if (obj.length !== +obj.length) obj = _.values(obj);
+    return _.indexOf(obj, target) >= 0;
+  };
+
+  // Invoke a method (with arguments) on every item in a collection.
+  _.invoke = function(obj, method) {
+    var args = slice.call(arguments, 2);
+    var isFunc = _.isFunction(method);
+    return _.map(obj, function(value) {
+      return (isFunc ? method : value[method]).apply(value, args);
+    });
+  };
+
+  // Convenience version of a common use case of `map`: fetching a property.
+  _.pluck = function(obj, key) {
+    return _.map(obj, _.property(key));
+  };
+
+  // Convenience version of a common use case of `filter`: selecting only objects
+  // containing specific `key:value` pairs.
+  _.where = function(obj, attrs) {
+    return _.filter(obj, _.matches(attrs));
+  };
+
+  // Convenience version of a common use case of `find`: getting the first object
+  // containing specific `key:value` pairs.
+  _.findWhere = function(obj, attrs) {
+    return _.find(obj, _.matches(attrs));
+  };
+
+  // Return the maximum element (or element-based computation).
+  _.max = function(obj, iteratee, context) {
+    var result = -Infinity, lastComputed = -Infinity,
+        value, computed;
+    if (iteratee == null && obj != null) {
+      obj = obj.length === +obj.length ? obj : _.values(obj);
+      for (var i = 0, length = obj.length; i < length; i++) {
+        value = obj[i];
+        if (value > result) {
+          result = value;
+        }
+      }
+    } else {
+      iteratee = _.iteratee(iteratee, context);
+      _.each(obj, function(value, index, list) {
+        computed = iteratee(value, index, list);
+        if (computed > lastComputed || computed === -Infinity && result === -Infinity) {
+          result = value;
+          lastComputed = computed;
+        }
+      });
+    }
+    return result;
+  };
+
+  // Return the minimum element (or element-based computation).
+  _.min = function(obj, iteratee, context) {
+    var result = Infinity, lastComputed = Infinity,
+        value, computed;
+    if (iteratee == null && obj != null) {
+      obj = obj.length === +obj.length ? obj : _.values(obj);
+      for (var i = 0, length = obj.length; i < length; i++) {
+        value = obj[i];
+        if (value < result) {
+          result = value;
+        }
+      }
+    } else {
+      iteratee = _.iteratee(iteratee, context);
+      _.each(obj, function(value, index, list) {
+        computed = iteratee(value, index, list);
+        if (computed < lastComputed || computed === Infinity && result === Infinity) {
+          result = value;
+          lastComputed = computed;
+        }
+      });
+    }
+    return result;
+  };
+
+  // Shuffle a collection, using the modern version of the
+  // [Fisher-Yates shuffle](http://en.wikipedia.org/wiki/Fisher–Yates_shuffle).
+  _.shuffle = function(obj) {
+    var set = obj && obj.length === +obj.length ? obj : _.values(obj);
+    var length = set.length;
+    var shuffled = Array(length);
+    for (var index = 0, rand; index < length; index++) {
+      rand = _.random(0, index);
+      if (rand !== index) shuffled[index] = shuffled[rand];
+      shuffled[rand] = set[index];
+    }
+    return shuffled;
+  };
+
+  // Sample **n** random values from a collection.
+  // If **n** is not specified, returns a single random element.
+  // The internal `guard` argument allows it to work with `map`.
+  _.sample = function(obj, n, guard) {
+    if (n == null || guard) {
+      if (obj.length !== +obj.length) obj = _.values(obj);
+      return obj[_.random(obj.length - 1)];
+    }
+    return _.shuffle(obj).slice(0, Math.max(0, n));
+  };
+
+  // Sort the object's values by a criterion produced by an iteratee.
+  _.sortBy = function(obj, iteratee, context) {
+    iteratee = _.iteratee(iteratee, context);
+    return _.pluck(_.map(obj, function(value, index, list) {
+      return {
+        value: value,
+        index: index,
+        criteria: iteratee(value, index, list)
+      };
+    }).sort(function(left, right) {
+      var a = left.criteria;
+      var b = right.criteria;
+      if (a !== b) {
+        if (a > b || a === void 0) return 1;
+        if (a < b || b === void 0) return -1;
+      }
+      return left.index - right.index;
+    }), 'value');
+  };
+
+  // An internal function used for aggregate "group by" operations.
+  var group = function(behavior) {
+    return function(obj, iteratee, context) {
+      var result = {};
+      iteratee = _.iteratee(iteratee, context);
+      _.each(obj, function(value, index) {
+        var key = iteratee(value, index, obj);
+        behavior(result, value, key);
+      });
+      return result;
+    };
+  };
+
+  // Groups the object's values by a criterion. Pass either a string attribute
+  // to group by, or a function that returns the criterion.
+  _.groupBy = group(function(result, value, key) {
+    if (_.has(result, key)) result[key].push(value); else result[key] = [value];
+  });
+
+  // Indexes the object's values by a criterion, similar to `groupBy`, but for
+  // when you know that your index values will be unique.
+  _.indexBy = group(function(result, value, key) {
+    result[key] = value;
+  });
+
+  // Counts instances of an object that group by a certain criterion. Pass
+  // either a string attribute to count by, or a function that returns the
+  // criterion.
+  _.countBy = group(function(result, value, key) {
+    if (_.has(result, key)) result[key]++; else result[key] = 1;
+  });
+
+  // Use a comparator function to figure out the smallest index at which
+  // an object should be inserted so as to maintain order. Uses binary search.
+  _.sortedIndex = function(array, obj, iteratee, context) {
+    iteratee = _.iteratee(iteratee, context, 1);
+    var value = iteratee(obj);
+    var low = 0, high = array.length;
+    while (low < high) {
+      var mid = low + high >>> 1;
+      if (iteratee(array[mid]) < value) low = mid + 1; else high = mid;
+    }
+    return low;
+  };
+
+  // Safely create a real, live array from anything iterable.
+  _.toArray = function(obj) {
+    if (!obj) return [];
+    if (_.isArray(obj)) return slice.call(obj);
+    if (obj.length === +obj.length) return _.map(obj, _.identity);
+    return _.values(obj);
+  };
+
+  // Return the number of elements in an object.
+  _.size = function(obj) {
+    if (obj == null) return 0;
+    return obj.length === +obj.length ? obj.length : _.keys(obj).length;
+  };
+
+  // Split a collection into two arrays: one whose elements all satisfy the given
+  // predicate, and one whose elements all do not satisfy the predicate.
+  _.partition = function(obj, predicate, context) {
+    predicate = _.iteratee(predicate, context);
+    var pass = [], fail = [];
+    _.each(obj, function(value, key, obj) {
+      (predicate(value, key, obj) ? pass : fail).push(value);
+    });
+    return [pass, fail];
+  };
+
+  // Array Functions
+  // ---------------
+
+  // Get the first element of an array. Passing **n** will return the first N
+  // values in the array. Aliased as `head` and `take`. The **guard** check
+  // allows it to work with `_.map`.
+  _.first = _.head = _.take = function(array, n, guard) {
+    if (array == null) return void 0;
+    if (n == null || guard) return array[0];
+    if (n < 0) return [];
+    return slice.call(array, 0, n);
+  };
+
+  // Returns everything but the last entry of the array. Especially useful on
+  // the arguments object. Passing **n** will return all the values in
+  // the array, excluding the last N. The **guard** check allows it to work with
+  // `_.map`.
+  _.initial = function(array, n, guard) {
+    return slice.call(array, 0, Math.max(0, array.length - (n == null || guard ? 1 : n)));
+  };
+
+  // Get the last element of an array. Passing **n** will return the last N
+  // values in the array. The **guard** check allows it to work with `_.map`.
+  _.last = function(array, n, guard) {
+    if (array == null) return void 0;
+    if (n == null || guard) return array[array.length - 1];
+    return slice.call(array, Math.max(array.length - n, 0));
+  };
+
+  // Returns everything but the first entry of the array. Aliased as `tail` and `drop`.
+  // Especially useful on the arguments object. Passing an **n** will return
+  // the rest N values in the array. The **guard**
+  // check allows it to work with `_.map`.
+  _.rest = _.tail = _.drop = function(array, n, guard) {
+    return slice.call(array, n == null || guard ? 1 : n);
+  };
+
+  // Trim out all falsy values from an array.
+  _.compact = function(array) {
+    return _.filter(array, _.identity);
+  };
+
+  // Internal implementation of a recursive `flatten` function.
+  var flatten = function(input, shallow, strict, output) {
+    if (shallow && _.every(input, _.isArray)) {
+      return concat.apply(output, input);
+    }
+    for (var i = 0, length = input.length; i < length; i++) {
+      var value = input[i];
+      if (!_.isArray(value) && !_.isArguments(value)) {
+        if (!strict) output.push(value);
+      } else if (shallow) {
+        push.apply(output, value);
+      } else {
+        flatten(value, shallow, strict, output);
+      }
+    }
+    return output;
+  };
+
+  // Flatten out an array, either recursively (by default), or just one level.
+  _.flatten = function(array, shallow) {
+    return flatten(array, shallow, false, []);
+  };
+
+  // Return a version of the array that does not contain the specified value(s).
+  _.without = function(array) {
+    return _.difference(array, slice.call(arguments, 1));
+  };
+
+  // Produce a duplicate-free version of the array. If the array has already
+  // been sorted, you have the option of using a faster algorithm.
+  // Aliased as `unique`.
+  _.uniq = _.unique = function(array, isSorted, iteratee, context) {
+    if (array == null) return [];
+    if (!_.isBoolean(isSorted)) {
+      context = iteratee;
+      iteratee = isSorted;
+      isSorted = false;
+    }
+    if (iteratee != null) iteratee = _.iteratee(iteratee, context);
+    var result = [];
+    var seen = [];
+    for (var i = 0, length = array.length; i < length; i++) {
+      var value = array[i];
+      if (isSorted) {
+        if (!i || seen !== value) result.push(value);
+        seen = value;
+      } else if (iteratee) {
+        var computed = iteratee(value, i, array);
+        if (_.indexOf(seen, computed) < 0) {
+          seen.push(computed);
+          result.push(value);
+        }
+      } else if (_.indexOf(result, value) < 0) {
+        result.push(value);
+      }
+    }
+    return result;
+  };
+
+  // Produce an array that contains the union: each distinct element from all of
+  // the passed-in arrays.
+  _.union = function() {
+    return _.uniq(flatten(arguments, true, true, []));
+  };
+
+  // Produce an array that contains every item shared between all the
+  // passed-in arrays.
+  _.intersection = function(array) {
+    if (array == null) return [];
+    var result = [];
+    var argsLength = arguments.length;
+    for (var i = 0, length = array.length; i < length; i++) {
+      var item = array[i];
+      if (_.contains(result, item)) continue;
+      for (var j = 1; j < argsLength; j++) {
+        if (!_.contains(arguments[j], item)) break;
+      }
+      if (j === argsLength) result.push(item);
+    }
+    return result;
+  };
+
+  // Take the difference between one array and a number of other arrays.
+  // Only the elements present in just the first array will remain.
+  _.difference = function(array) {
+    var rest = flatten(slice.call(arguments, 1), true, true, []);
+    return _.filter(array, function(value){
+      return !_.contains(rest, value);
+    });
+  };
+
+  // Zip together multiple lists into a single array -- elements that share
+  // an index go together.
+  _.zip = function(array) {
+    if (array == null) return [];
+    var length = _.max(arguments, 'length').length;
+    var results = Array(length);
+    for (var i = 0; i < length; i++) {
+      results[i] = _.pluck(arguments, i);
+    }
+    return results;
+  };
+
+  // Converts lists into objects. Pass either a single array of `[key, value]`
+  // pairs, or two parallel arrays of the same length -- one of keys, and one of
+  // the corresponding values.
+  _.object = function(list, values) {
+    if (list == null) return {};
+    var result = {};
+    for (var i = 0, length = list.length; i < length; i++) {
+      if (values) {
+        result[list[i]] = values[i];
+      } else {
+        result[list[i][0]] = list[i][1];
+      }
+    }
+    return result;
+  };
+
+  // Return the position of the first occurrence of an item in an array,
+  // or -1 if the item is not included in the array.
+  // If the array is large and already in sort order, pass `true`
+  // for **isSorted** to use binary search.
+  _.indexOf = function(array, item, isSorted) {
+    if (array == null) return -1;
+    var i = 0, length = array.length;
+    if (isSorted) {
+      if (typeof isSorted == 'number') {
+        i = isSorted < 0 ? Math.max(0, length + isSorted) : isSorted;
+      } else {
+        i = _.sortedIndex(array, item);
+        return array[i] === item ? i : -1;
+      }
+    }
+    for (; i < length; i++) if (array[i] === item) return i;
+    return -1;
+  };
+
+  _.lastIndexOf = function(array, item, from) {
+    if (array == null) return -1;
+    var idx = array.length;
+    if (typeof from == 'number') {
+      idx = from < 0 ? idx + from + 1 : Math.min(idx, from + 1);
+    }
+    while (--idx >= 0) if (array[idx] === item) return idx;
+    return -1;
+  };
+
+  // Generate an integer Array containing an arithmetic progression. A port of
+  // the native Python `range()` function. See
+  // [the Python documentation](http://docs.python.org/library/functions.html#range).
+  _.range = function(start, stop, step) {
+    if (arguments.length <= 1) {
+      stop = start || 0;
+      start = 0;
+    }
+    step = step || 1;
+
+    var length = Math.max(Math.ceil((stop - start) / step), 0);
+    var range = Array(length);
+
+    for (var idx = 0; idx < length; idx++, start += step) {
+      range[idx] = start;
+    }
+
+    return range;
+  };
+
+  // Function (ahem) Functions
+  // ------------------
+
+  // Reusable constructor function for prototype setting.
+  var Ctor = function(){};
+
+  // Create a function bound to a given object (assigning `this`, and arguments,
+  // optionally). Delegates to **ECMAScript 5**'s native `Function.bind` if
+  // available.
+  _.bind = function(func, context) {
+    var args, bound;
+    if (nativeBind && func.bind === nativeBind) return nativeBind.apply(func, slice.call(arguments, 1));
+    if (!_.isFunction(func)) throw new TypeError('Bind must be called on a function');
+    args = slice.call(arguments, 2);
+    bound = function() {
+      if (!(this instanceof bound)) return func.apply(context, args.concat(slice.call(arguments)));
+      Ctor.prototype = func.prototype;
+      var self = new Ctor;
+      Ctor.prototype = null;
+      var result = func.apply(self, args.concat(slice.call(arguments)));
+      if (_.isObject(result)) return result;
+      return self;
+    };
+    return bound;
+  };
+
+  // Partially apply a function by creating a version that has had some of its
+  // arguments pre-filled, without changing its dynamic `this` context. _ acts
+  // as a placeholder, allowing any combination of arguments to be pre-filled.
+  _.partial = function(func) {
+    var boundArgs = slice.call(arguments, 1);
+    return function() {
+      var position = 0;
+      var args = boundArgs.slice();
+      for (var i = 0, length = args.length; i < length; i++) {
+        if (args[i] === _) args[i] = arguments[position++];
+      }
+      while (position < arguments.length) args.push(arguments[position++]);
+      return func.apply(this, args);
+    };
+  };
+
+  // Bind a number of an object's methods to that object. Remaining arguments
+  // are the method names to be bound. Useful for ensuring that all callbacks
+  // defined on an object belong to it.
+  _.bindAll = function(obj) {
+    var i, length = arguments.length, key;
+    if (length <= 1) throw new Error('bindAll must be passed function names');
+    for (i = 1; i < length; i++) {
+      key = arguments[i];
+      obj[key] = _.bind(obj[key], obj);
+    }
+    return obj;
+  };
+
+  // Memoize an expensive function by storing its results.
+  _.memoize = function(func, hasher) {
+    var memoize = function(key) {
+      var cache = memoize.cache;
+      var address = hasher ? hasher.apply(this, arguments) : key;
+      if (!_.has(cache, address)) cache[address] = func.apply(this, arguments);
+      return cache[address];
+    };
+    memoize.cache = {};
+    return memoize;
+  };
+
+  // Delays a function for the given number of milliseconds, and then calls
+  // it with the arguments supplied.
+  _.delay = function(func, wait) {
+    var args = slice.call(arguments, 2);
+    return setTimeout(function(){
+      return func.apply(null, args);
+    }, wait);
+  };
+
+  // Defers a function, scheduling it to run after the current call stack has
+  // cleared.
+  _.defer = function(func) {
+    return _.delay.apply(_, [func, 1].concat(slice.call(arguments, 1)));
+  };
+
+  // Returns a function, that, when invoked, will only be triggered at most once
+  // during a given window of time. Normally, the throttled function will run
+  // as much as it can, without ever going more than once per `wait` duration;
+  // but if you'd like to disable the execution on the leading edge, pass
+  // `{leading: false}`. To disable execution on the trailing edge, ditto.
+  _.throttle = function(func, wait, options) {
+    var context, args, result;
+    var timeout = null;
+    var previous = 0;
+    if (!options) options = {};
+    var later = function() {
+      previous = options.leading === false ? 0 : _.now();
+      timeout = null;
+      result = func.apply(context, args);
+      if (!timeout) context = args = null;
+    };
+    return function() {
+      var now = _.now();
+      if (!previous && options.leading === false) previous = now;
+      var remaining = wait - (now - previous);
+      context = this;
+      args = arguments;
+      if (remaining <= 0 || remaining > wait) {
+        clearTimeout(timeout);
+        timeout = null;
+        previous = now;
+        result = func.apply(context, args);
+        if (!timeout) context = args = null;
+      } else if (!timeout && options.trailing !== false) {
+        timeout = setTimeout(later, remaining);
+      }
+      return result;
+    };
+  };
+
+  // Returns a function, that, as long as it continues to be invoked, will not
+  // be triggered. The function will be called after it stops being called for
+  // N milliseconds. If `immediate` is passed, trigger the function on the
+  // leading edge, instead of the trailing.
+  _.debounce = function(func, wait, immediate) {
+    var timeout, args, context, timestamp, result;
+
+    var later = function() {
+      var last = _.now() - timestamp;
+
+      if (last < wait && last > 0) {
+        timeout = setTimeout(later, wait - last);
+      } else {
+        timeout = null;
+        if (!immediate) {
+          result = func.apply(context, args);
+          if (!timeout) context = args = null;
+        }
+      }
+    };
+
+    return function() {
+      context = this;
+      args = arguments;
+      timestamp = _.now();
+      var callNow = immediate && !timeout;
+      if (!timeout) timeout = setTimeout(later, wait);
+      if (callNow) {
+        result = func.apply(context, args);
+        context = args = null;
+      }
+
+      return result;
+    };
+  };
+
+  // Returns the first function passed as an argument to the second,
+  // allowing you to adjust arguments, run code before and after, and
+  // conditionally execute the original function.
+  _.wrap = function(func, wrapper) {
+    return _.partial(wrapper, func);
+  };
+
+  // Returns a negated version of the passed-in predicate.
+  _.negate = function(predicate) {
+    return function() {
+      return !predicate.apply(this, arguments);
+    };
+  };
+
+  // Returns a function that is the composition of a list of functions, each
+  // consuming the return value of the function that follows.
+  _.compose = function() {
+    var args = arguments;
+    var start = args.length - 1;
+    return function() {
+      var i = start;
+      var result = args[start].apply(this, arguments);
+      while (i--) result = args[i].call(this, result);
+      return result;
+    };
+  };
+
+  // Returns a function that will only be executed after being called N times.
+  _.after = function(times, func) {
+    return function() {
+      if (--times < 1) {
+        return func.apply(this, arguments);
+      }
+    };
+  };
+
+  // Returns a function that will only be executed before being called N times.
+  _.before = function(times, func) {
+    var memo;
+    return function() {
+      if (--times > 0) {
+        memo = func.apply(this, arguments);
+      } else {
+        func = null;
+      }
+      return memo;
+    };
+  };
+
+  // Returns a function that will be executed at most one time, no matter how
+  // often you call it. Useful for lazy initialization.
+  _.once = _.partial(_.before, 2);
+
+  // Object Functions
+  // ----------------
+
+  // Retrieve the names of an object's properties.
+  // Delegates to **ECMAScript 5**'s native `Object.keys`
+  _.keys = function(obj) {
+    if (!_.isObject(obj)) return [];
+    if (nativeKeys) return nativeKeys(obj);
+    var keys = [];
+    for (var key in obj) if (_.has(obj, key)) keys.push(key);
+    return keys;
+  };
+
+  // Retrieve the values of an object's properties.
+  _.values = function(obj) {
+    var keys = _.keys(obj);
+    var length = keys.length;
+    var values = Array(length);
+    for (var i = 0; i < length; i++) {
+      values[i] = obj[keys[i]];
+    }
+    return values;
+  };
+
+  // Convert an object into a list of `[key, value]` pairs.
+  _.pairs = function(obj) {
+    var keys = _.keys(obj);
+    var length = keys.length;
+    var pairs = Array(length);
+    for (var i = 0; i < length; i++) {
+      pairs[i] = [keys[i], obj[keys[i]]];
+    }
+    return pairs;
+  };
+
+  // Invert the keys and values of an object. The values must be serializable.
+  _.invert = function(obj) {
+    var result = {};
+    var keys = _.keys(obj);
+    for (var i = 0, length = keys.length; i < length; i++) {
+      result[obj[keys[i]]] = keys[i];
+    }
+    return result;
+  };
+
+  // Return a sorted list of the function names available on the object.
+  // Aliased as `methods`
+  _.functions = _.methods = function(obj) {
+    var names = [];
+    for (var key in obj) {
+      if (_.isFunction(obj[key])) names.push(key);
+    }
+    return names.sort();
+  };
+
+  // Extend a given object with all the properties in passed-in object(s).
+  _.extend = function(obj) {
+    if (!_.isObject(obj)) return obj;
+    var source, prop;
+    for (var i = 1, length = arguments.length; i < length; i++) {
+      source = arguments[i];
+      for (prop in source) {
+        if (hasOwnProperty.call(source, prop)) {
+            obj[prop] = source[prop];
+        }
+      }
+    }
+    return obj;
+  };
+
+  // Return a copy of the object only containing the whitelisted properties.
+  _.pick = function(obj, iteratee, context) {
+    var result = {}, key;
+    if (obj == null) return result;
+    if (_.isFunction(iteratee)) {
+      iteratee = createCallback(iteratee, context);
+      for (key in obj) {
+        var value = obj[key];
+        if (iteratee(value, key, obj)) result[key] = value;
+      }
+    } else {
+      var keys = concat.apply([], slice.call(arguments, 1));
+      obj = new Object(obj);
+      for (var i = 0, length = keys.length; i < length; i++) {
+        key = keys[i];
+        if (key in obj) result[key] = obj[key];
+      }
+    }
+    return result;
+  };
+
+   // Return a copy of the object without the blacklisted properties.
+  _.omit = function(obj, iteratee, context) {
+    if (_.isFunction(iteratee)) {
+      iteratee = _.negate(iteratee);
+    } else {
+      var keys = _.map(concat.apply([], slice.call(arguments, 1)), String);
+      iteratee = function(value, key) {
+        return !_.contains(keys, key);
+      };
+    }
+    return _.pick(obj, iteratee, context);
+  };
+
+  // Fill in a given object with default properties.
+  _.defaults = function(obj) {
+    if (!_.isObject(obj)) return obj;
+    for (var i = 1, length = arguments.length; i < length; i++) {
+      var source = arguments[i];
+      for (var prop in source) {
+        if (obj[prop] === void 0) obj[prop] = source[prop];
+      }
+    }
+    return obj;
+  };
+
+  // Create a (shallow-cloned) duplicate of an object.
+  _.clone = function(obj) {
+    if (!_.isObject(obj)) return obj;
+    return _.isArray(obj) ? obj.slice() : _.extend({}, obj);
+  };
+
+  // Invokes interceptor with the obj, and then returns obj.
+  // The primary purpose of this method is to "tap into" a method chain, in
+  // order to perform operations on intermediate results within the chain.
+  _.tap = function(obj, interceptor) {
+    interceptor(obj);
+    return obj;
+  };
+
+  // Internal recursive comparison function for `isEqual`.
+  var eq = function(a, b, aStack, bStack) {
+    // Identical objects are equal. `0 === -0`, but they aren't identical.
+    // See the [Harmony `egal` proposal](http://wiki.ecmascript.org/doku.php?id=harmony:egal).
+    if (a === b) return a !== 0 || 1 / a === 1 / b;
+    // A strict comparison is necessary because `null == undefined`.
+    if (a == null || b == null) return a === b;
+    // Unwrap any wrapped objects.
+    if (a instanceof _) a = a._wrapped;
+    if (b instanceof _) b = b._wrapped;
+    // Compare `[[Class]]` names.
+    var className = toString.call(a);
+    if (className !== toString.call(b)) return false;
+    switch (className) {
+      // Strings, numbers, regular expressions, dates, and booleans are compared by value.
+      case '[object RegExp]':
+      // RegExps are coerced to strings for comparison (Note: '' + /a/i === '/a/i')
+      case '[object String]':
+        // Primitives and their corresponding object wrappers are equivalent; thus, `"5"` is
+        // equivalent to `new String("5")`.
+        return '' + a === '' + b;
+      case '[object Number]':
+        // `NaN`s are equivalent, but non-reflexive.
+        // Object(NaN) is equivalent to NaN
+        if (+a !== +a) return +b !== +b;
+        // An `egal` comparison is performed for other numeric values.
+        return +a === 0 ? 1 / +a === 1 / b : +a === +b;
+      case '[object Date]':
+      case '[object Boolean]':
+        // Coerce dates and booleans to numeric primitive values. Dates are compared by their
+        // millisecond representations. Note that invalid dates with millisecond representations
+        // of `NaN` are not equivalent.
+        return +a === +b;
+    }
+    if (typeof a != 'object' || typeof b != 'object') return false;
+    // Assume equality for cyclic structures. The algorithm for detecting cyclic
+    // structures is adapted from ES 5.1 section 15.12.3, abstract operation `JO`.
+    var length = aStack.length;
+    while (length--) {
+      // Linear search. Performance is inversely proportional to the number of
+      // unique nested structures.
+      if (aStack[length] === a) return bStack[length] === b;
+    }
+    // Objects with different constructors are not equivalent, but `Object`s
+    // from different frames are.
+    var aCtor = a.constructor, bCtor = b.constructor;
+    if (
+      aCtor !== bCtor &&
+      // Handle Object.create(x) cases
+      'constructor' in a && 'constructor' in b &&
+      !(_.isFunction(aCtor) && aCtor instanceof aCtor &&
+        _.isFunction(bCtor) && bCtor instanceof bCtor)
+    ) {
+      return false;
+    }
+    // Add the first object to the stack of traversed objects.
+    aStack.push(a);
+    bStack.push(b);
+    var size, result;
+    // Recursively compare objects and arrays.
+    if (className === '[object Array]') {
+      // Compare array lengths to determine if a deep comparison is necessary.
+      size = a.length;
+      result = size === b.length;
+      if (result) {
+        // Deep compare the contents, ignoring non-numeric properties.
+        while (size--) {
+          if (!(result = eq(a[size], b[size], aStack, bStack))) break;
+        }
+      }
+    } else {
+      // Deep compare objects.
+      var keys = _.keys(a), key;
+      size = keys.length;
+      // Ensure that both objects contain the same number of properties before comparing deep equality.
+      result = _.keys(b).length === size;
+      if (result) {
+        while (size--) {
+          // Deep compare each member
+          key = keys[size];
+          if (!(result = _.has(b, key) && eq(a[key], b[key], aStack, bStack))) break;
+        }
+      }
+    }
+    // Remove the first object from the stack of traversed objects.
+    aStack.pop();
+    bStack.pop();
+    return result;
+  };
+
+  // Perform a deep comparison to check if two objects are equal.
+  _.isEqual = function(a, b) {
+    return eq(a, b, [], []);
+  };
+
+  // Is a given array, string, or object empty?
+  // An "empty" object has no enumerable own-properties.
+  _.isEmpty = function(obj) {
+    if (obj == null) return true;
+    if (_.isArray(obj) || _.isString(obj) || _.isArguments(obj)) return obj.length === 0;
+    for (var key in obj) if (_.has(obj, key)) return false;
+    return true;
+  };
+
+  // Is a given value a DOM element?
+  _.isElement = function(obj) {
+    return !!(obj && obj.nodeType === 1);
+  };
+
+  // Is a given value an array?
+  // Delegates to ECMA5's native Array.isArray
+  _.isArray = nativeIsArray || function(obj) {
+    return toString.call(obj) === '[object Array]';
+  };
+
+  // Is a given variable an object?
+  _.isObject = function(obj) {
+    var type = typeof obj;
+    return type === 'function' || type === 'object' && !!obj;
+  };
+
+  // Add some isType methods: isArguments, isFunction, isString, isNumber, isDate, isRegExp.
+  _.each(['Arguments', 'Function', 'String', 'Number', 'Date', 'RegExp'], function(name) {
+    _['is' + name] = function(obj) {
+      return toString.call(obj) === '[object ' + name + ']';
+    };
+  });
+
+  // Define a fallback version of the method in browsers (ahem, IE), where
+  // there isn't any inspectable "Arguments" type.
+  if (!_.isArguments(arguments)) {
+    _.isArguments = function(obj) {
+      return _.has(obj, 'callee');
+    };
+  }
+
+  // Optimize `isFunction` if appropriate. Work around an IE 11 bug.
+  if (typeof /./ !== 'function') {
+    _.isFunction = function(obj) {
+      return typeof obj == 'function' || false;
+    };
+  }
+
+  // Is a given object a finite number?
+  _.isFinite = function(obj) {
+    return isFinite(obj) && !isNaN(parseFloat(obj));
+  };
+
+  // Is the given value `NaN`? (NaN is the only number which does not equal itself).
+  _.isNaN = function(obj) {
+    return _.isNumber(obj) && obj !== +obj;
+  };
+
+  // Is a given value a boolean?
+  _.isBoolean = function(obj) {
+    return obj === true || obj === false || toString.call(obj) === '[object Boolean]';
+  };
+
+  // Is a given value equal to null?
+  _.isNull = function(obj) {
+    return obj === null;
+  };
+
+  // Is a given variable undefined?
+  _.isUndefined = function(obj) {
+    return obj === void 0;
+  };
+
+  // Shortcut function for checking if an object has a given property directly
+  // on itself (in other words, not on a prototype).
+  _.has = function(obj, key) {
+    return obj != null && hasOwnProperty.call(obj, key);
+  };
+
+  // Utility Functions
+  // -----------------
+
+  // Run Underscore.js in *noConflict* mode, returning the `_` variable to its
+  // previous owner. Returns a reference to the Underscore object.
+  _.noConflict = function() {
+    root._ = previousUnderscore;
+    return this;
+  };
+
+  // Keep the identity function around for default iteratees.
+  _.identity = function(value) {
+    return value;
+  };
+
+  _.constant = function(value) {
+    return function() {
+      return value;
+    };
+  };
+
+  _.noop = function(){};
+
+  _.property = function(key) {
+    return function(obj) {
+      return obj[key];
+    };
+  };
+
+  // Returns a predicate for checking whether an object has a given set of `key:value` pairs.
+  _.matches = function(attrs) {
+    var pairs = _.pairs(attrs), length = pairs.length;
+    return function(obj) {
+      if (obj == null) return !length;
+      obj = new Object(obj);
+      for (var i = 0; i < length; i++) {
+        var pair = pairs[i], key = pair[0];
+        if (pair[1] !== obj[key] || !(key in obj)) return false;
+      }
+      return true;
+    };
+  };
+
+  // Run a function **n** times.
+  _.times = function(n, iteratee, context) {
+    var accum = Array(Math.max(0, n));
+    iteratee = createCallback(iteratee, context, 1);
+    for (var i = 0; i < n; i++) accum[i] = iteratee(i);
+    return accum;
+  };
+
+  // Return a random integer between min and max (inclusive).
+  _.random = function(min, max) {
+    if (max == null) {
+      max = min;
+      min = 0;
+    }
+    return min + Math.floor(Math.random() * (max - min + 1));
+  };
+
+  // A (possibly faster) way to get the current timestamp as an integer.
+  _.now = Date.now || function() {
+    return new Date().getTime();
+  };
+
+   // List of HTML entities for escaping.
+  var escapeMap = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#x27;',
+    '`': '&#x60;'
+  };
+  var unescapeMap = _.invert(escapeMap);
+
+  // Functions for escaping and unescaping strings to/from HTML interpolation.
+  var createEscaper = function(map) {
+    var escaper = function(match) {
+      return map[match];
+    };
+    // Regexes for identifying a key that needs to be escaped
+    var source = '(?:' + _.keys(map).join('|') + ')';
+    var testRegexp = RegExp(source);
+    var replaceRegexp = RegExp(source, 'g');
+    return function(string) {
+      string = string == null ? '' : '' + string;
+      return testRegexp.test(string) ? string.replace(replaceRegexp, escaper) : string;
+    };
+  };
+  _.escape = createEscaper(escapeMap);
+  _.unescape = createEscaper(unescapeMap);
+
+  // If the value of the named `property` is a function then invoke it with the
+  // `object` as context; otherwise, return it.
+  _.result = function(object, property) {
+    if (object == null) return void 0;
+    var value = object[property];
+    return _.isFunction(value) ? object[property]() : value;
+  };
+
+  // Generate a unique integer id (unique within the entire client session).
+  // Useful for temporary DOM ids.
+  var idCounter = 0;
+  _.uniqueId = function(prefix) {
+    var id = ++idCounter + '';
+    return prefix ? prefix + id : id;
+  };
+
+  // By default, Underscore uses ERB-style template delimiters, change the
+  // following template settings to use alternative delimiters.
+  _.templateSettings = {
+    evaluate    : /<%([\s\S]+?)%>/g,
+    interpolate : /<%=([\s\S]+?)%>/g,
+    escape      : /<%-([\s\S]+?)%>/g
+  };
+
+  // When customizing `templateSettings`, if you don't want to define an
+  // interpolation, evaluation or escaping regex, we need one that is
+  // guaranteed not to match.
+  var noMatch = /(.)^/;
+
+  // Certain characters need to be escaped so that they can be put into a
+  // string literal.
+  var escapes = {
+    "'":      "'",
+    '\\':     '\\',
+    '\r':     'r',
+    '\n':     'n',
+    '\u2028': 'u2028',
+    '\u2029': 'u2029'
+  };
+
+  var escaper = /\\|'|\r|\n|\u2028|\u2029/g;
+
+  var escapeChar = function(match) {
+    return '\\' + escapes[match];
+  };
+
+  // JavaScript micro-templating, similar to John Resig's implementation.
+  // Underscore templating handles arbitrary delimiters, preserves whitespace,
+  // and correctly escapes quotes within interpolated code.
+  // NB: `oldSettings` only exists for backwards compatibility.
+  _.template = function(text, settings, oldSettings) {
+    if (!settings && oldSettings) settings = oldSettings;
+    settings = _.defaults({}, settings, _.templateSettings);
+
+    // Combine delimiters into one regular expression via alternation.
+    var matcher = RegExp([
+      (settings.escape || noMatch).source,
+      (settings.interpolate || noMatch).source,
+      (settings.evaluate || noMatch).source
+    ].join('|') + '|$', 'g');
+
+    // Compile the template source, escaping string literals appropriately.
+    var index = 0;
+    var source = "__p+='";
+    text.replace(matcher, function(match, escape, interpolate, evaluate, offset) {
+      source += text.slice(index, offset).replace(escaper, escapeChar);
+      index = offset + match.length;
+
+      if (escape) {
+        source += "'+\n((__t=(" + escape + "))==null?'':_.escape(__t))+\n'";
+      } else if (interpolate) {
+        source += "'+\n((__t=(" + interpolate + "))==null?'':__t)+\n'";
+      } else if (evaluate) {
+        source += "';\n" + evaluate + "\n__p+='";
+      }
+
+      // Adobe VMs need the match returned to produce the correct offest.
+      return match;
+    });
+    source += "';\n";
+
+    // If a variable is not specified, place data values in local scope.
+    if (!settings.variable) source = 'with(obj||{}){\n' + source + '}\n';
+
+    source = "var __t,__p='',__j=Array.prototype.join," +
+      "print=function(){__p+=__j.call(arguments,'');};\n" +
+      source + 'return __p;\n';
+
+    try {
+      var render = new Function(settings.variable || 'obj', '_', source);
+    } catch (e) {
+      e.source = source;
+      throw e;
+    }
+
+    var template = function(data) {
+      return render.call(this, data, _);
+    };
+
+    // Provide the compiled source as a convenience for precompilation.
+    var argument = settings.variable || 'obj';
+    template.source = 'function(' + argument + '){\n' + source + '}';
+
+    return template;
+  };
+
+  // Add a "chain" function. Start chaining a wrapped Underscore object.
+  _.chain = function(obj) {
+    var instance = _(obj);
+    instance._chain = true;
+    return instance;
+  };
+
+  // OOP
+  // ---------------
+  // If Underscore is called as a function, it returns a wrapped object that
+  // can be used OO-style. This wrapper holds altered versions of all the
+  // underscore functions. Wrapped objects may be chained.
+
+  // Helper function to continue chaining intermediate results.
+  var result = function(obj) {
+    return this._chain ? _(obj).chain() : obj;
+  };
+
+  // Add your own custom functions to the Underscore object.
+  _.mixin = function(obj) {
+    _.each(_.functions(obj), function(name) {
+      var func = _[name] = obj[name];
+      _.prototype[name] = function() {
+        var args = [this._wrapped];
+        push.apply(args, arguments);
+        return result.call(this, func.apply(_, args));
+      };
+    });
+  };
+
+  // Add all of the Underscore functions to the wrapper object.
+  _.mixin(_);
+
+  // Add all mutator Array functions to the wrapper.
+  _.each(['pop', 'push', 'reverse', 'shift', 'sort', 'splice', 'unshift'], function(name) {
+    var method = ArrayProto[name];
+    _.prototype[name] = function() {
+      var obj = this._wrapped;
+      method.apply(obj, arguments);
+      if ((name === 'shift' || name === 'splice') && obj.length === 0) delete obj[0];
+      return result.call(this, obj);
+    };
+  });
+
+  // Add all accessor Array functions to the wrapper.
+  _.each(['concat', 'join', 'slice'], function(name) {
+    var method = ArrayProto[name];
+    _.prototype[name] = function() {
+      return result.call(this, method.apply(this._wrapped, arguments));
+    };
+  });
+
+  // Extracts the result from a wrapped and chained object.
+  _.prototype.value = function() {
+    return this._wrapped;
+  };
+
+  // AMD registration happens at the end for compatibility with AMD loaders
+  // that may not enforce next-turn semantics on modules. Even though general
+  // practice for AMD registration is to be anonymous, underscore registers
+  // as a named module because, like jQuery, it is a base library that is
+  // popular enough to be bundled in a third party lib, but not be part of
+  // an AMD load request. Those cases could generate an error when an
+  // anonymous define() is called outside of a loader request.
+  if (typeof define === 'function' && define.amd) {
+    define('underscore', [], function() {
+      return _;
+    });
+  }
+}.call(this));
+
 /*!
  * jQuery JavaScript Library v2.1.1
  * http://jquery.com/
@@ -54978,3 +56394,1265 @@ angular.module('ui.date', [])
 
   return directive;
 }]);
+
+/*
+ The MIT License (MIT)
+
+ Copyright (c) 2014 Muhammed Ashik
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ SOFTWARE.
+ */
+
+/*jshint indent: 2 */
+/*global angular: false */
+
+(function () {
+  'use strict';
+  angular.module('ui.sortable', [])
+    .constant('sortableConfig', {
+      itemClass: 'as-sortable-item',
+      handleClass: 'as-sortable-item-handle',
+      placeHolderClass: 'as-sortable-placeholder',
+      dragClass: 'as-sortable-drag',
+      hiddenClass: 'as-sortable-hidden'
+    });
+}());
+
+/*jshint indent: 2 */
+/*global angular: false */
+
+(function () {
+  'use strict';
+
+  var mainModule = angular.module('ui.sortable');
+
+  /**
+   * Helper factory for sortable.
+   */
+  mainModule.factory('$helper', ['$document', '$window',
+    function ($document, $window) {
+      return {
+
+        /**
+         * Get the height of an element.
+         *
+         * @param {Object} element Angular element.
+         * @returns {String} Height
+         */
+        height: function (element) {
+          return element.prop('offsetHeight');
+        },
+
+        /**
+         * Get the width of an element.
+         *
+         * @param {Object} element Angular element.
+         * @returns {String} Width
+         */
+        width: function (element) {
+          return element.prop('offsetWidth');
+        },
+
+        /**
+         * Get the offset values of an element.
+         *
+         * @param {Object} element Angular element.
+         * @param {Object} [scrollableContainer] Scrollable container object for calculating relative top & left (optional, defaults to Document)
+         * @returns {Object} Object with properties width, height, top and left
+         */
+        offset: function (element, scrollableContainer) {
+          var boundingClientRect = element[0].getBoundingClientRect();
+          if (!scrollableContainer) { scrollableContainer = $document[0].documentElement; }
+
+          return {
+            width: boundingClientRect.width || element.prop('offsetWidth'),
+            height: boundingClientRect.height || element.prop('offsetHeight'),
+            top: boundingClientRect.top + ($window.pageYOffset || scrollableContainer.scrollTop - scrollableContainer.offsetTop),
+            left: boundingClientRect.left + ($window.pageXOffset || scrollableContainer.scrollLeft - scrollableContainer.offsetLeft)
+          };
+        },
+
+        /**
+         * get the event object for touch.
+         *
+         * @param  {Object} event the touch event
+         * @return {Object} the touch event object.
+         */
+        eventObj: function (event) {
+          var obj = event;
+          if (event.targetTouches !== undefined) {
+            obj = event.targetTouches.item(0);
+          } else if (event.originalEvent !== undefined && event.originalEvent.targetTouches !== undefined) {
+            obj = event.originalEvent.targetTouches.item(0);
+          }
+          return obj;
+        },
+
+        /**
+         * Checks whether the touch is valid and multiple.
+         *
+         * @param event the event object.
+         * @returns {boolean} true if touch is multiple.
+         */
+        isTouchInvalid: function (event) {
+
+          var touchInvalid = false;
+          if (event.touches !== undefined && event.touches.length > 1) {
+            touchInvalid = true;
+          } else if (event.originalEvent !== undefined &&
+            event.originalEvent.touches !== undefined && event.originalEvent.touches.length > 1) {
+            touchInvalid = true;
+          }
+          return touchInvalid;
+        },
+
+        /**
+         * Get the start position of the target element according to the provided event properties.
+         *
+         * @param {Object} event Event
+         * @param {Object} target Target element
+         * @param {Object} [scrollableContainer] (optional) Scrollable container object
+         * @returns {Object} Object with properties offsetX, offsetY.
+         */
+        positionStarted: function (event, target, scrollableContainer) {
+          var pos = {};
+          pos.offsetX = event.pageX - this.offset(target, scrollableContainer).left;
+          pos.offsetY = event.pageY - this.offset(target, scrollableContainer).top;
+          pos.startX = pos.lastX = event.pageX;
+          pos.startY = pos.lastY = event.pageY;
+          pos.nowX = pos.nowY = pos.distX = pos.distY = pos.dirAx = 0;
+          pos.dirX = pos.dirY = pos.lastDirX = pos.lastDirY = pos.distAxX = pos.distAxY = 0;
+          return pos;
+        },
+
+        /**
+         * Calculates the event position and sets the direction
+         * properties.
+         *
+         * @param pos the current position of the element.
+         * @param event the move event.
+         */
+        calculatePosition: function (pos, event) {
+          // mouse position last events
+          pos.lastX = pos.nowX;
+          pos.lastY = pos.nowY;
+
+          // mouse position this events
+          pos.nowX = event.pageX;
+          pos.nowY = event.pageY;
+
+          // distance mouse moved between events
+          pos.distX = pos.nowX - pos.lastX;
+          pos.distY = pos.nowY - pos.lastY;
+
+          // direction mouse was moving
+          pos.lastDirX = pos.dirX;
+          pos.lastDirY = pos.dirY;
+
+          // direction mouse is now moving (on both axis)
+          pos.dirX = pos.distX === 0 ? 0 : pos.distX > 0 ? 1 : -1;
+          pos.dirY = pos.distY === 0 ? 0 : pos.distY > 0 ? 1 : -1;
+
+          // axis mouse is now moving on
+          var newAx = Math.abs(pos.distX) > Math.abs(pos.distY) ? 1 : 0;
+
+          // calc distance moved on this axis (and direction)
+          if (pos.dirAx !== newAx) {
+            pos.distAxX = 0;
+            pos.distAxY = 0;
+          } else {
+            pos.distAxX += Math.abs(pos.distX);
+            if (pos.dirX !== 0 && pos.dirX !== pos.lastDirX) {
+              pos.distAxX = 0;
+            }
+
+            pos.distAxY += Math.abs(pos.distY);
+            if (pos.dirY !== 0 && pos.dirY !== pos.lastDirY) {
+              pos.distAxY = 0;
+            }
+          }
+          pos.dirAx = newAx;
+        },
+
+        /**
+         * Move the position by applying style.
+         *
+         * @param event the event object
+         * @param element - the dom element
+         * @param pos - current position
+         * @param container - the bounding container.
+         * @param containerPositioning - absolute or relative positioning.
+         * @param {Object} [scrollableContainer] (optional) Scrollable container object
+         */
+        movePosition: function (event, element, pos, container, containerPositioning, scrollableContainer) {
+          var bounds;
+          var useRelative = (containerPositioning === 'relative');
+
+          element.x = event.pageX - pos.offsetX;
+          element.y = event.pageY - pos.offsetY;
+
+          if (container) {
+            bounds = this.offset(container, scrollableContainer);
+
+            if (useRelative) {
+              // reduce positioning by bounds
+              element.x -= bounds.left;
+              element.y -= bounds.top;
+
+              // reset bounds
+              bounds.left = 0;
+              bounds.top = 0;
+            }
+
+            if (element.x < bounds.left) {
+              element.x = bounds.left;
+            } else if (element.x >= bounds.width + bounds.left - this.offset(element).width) {
+              element.x = bounds.width + bounds.left - this.offset(element).width;
+            }
+            if (element.y < bounds.top) {
+              element.y = bounds.top;
+            } else if (element.y >= bounds.height + bounds.top - this.offset(element).height) {
+              element.y = bounds.height + bounds.top - this.offset(element).height;
+            }
+          }
+
+          element.css({
+            'left': element.x + 'px',
+            'top': element.y + 'px'
+          });
+
+          this.calculatePosition(pos, event);
+        },
+
+        /**
+         * The drag item info and functions.
+         * retains the item info before and after move.
+         * holds source item and target scope.
+         *
+         * @param item - the drag item
+         * @returns {{index: *, parent: *, source: *,
+                 *          sourceInfo: {index: *, itemScope: (*|.dragItem.sourceInfo.itemScope|$scope.itemScope|itemScope), sortableScope: *},
+                 *         moveTo: moveTo, isSameParent: isSameParent, isOrderChanged: isOrderChanged, eventArgs: eventArgs, apply: apply}}
+         */
+        dragItem: function (item) {
+
+          return {
+            index: item.index(),
+            parent: item.sortableScope,
+            source: item,
+            sourceInfo: {
+              index: item.index(),
+              itemScope: item.itemScope,
+              sortableScope: item.sortableScope
+            },
+            moveTo: function (parent, index) { // Move the item to a new position
+              this.parent = parent;
+              //If source Item is in the same Parent.
+              if (this.isSameParent() && this.source.index() < index) { // and target after
+                index = index - 1;
+              }
+              this.index = index;
+            },
+            isSameParent: function () {
+              return this.parent.element === this.sourceInfo.sortableScope.element;
+            },
+            isOrderChanged: function () {
+              return this.index !== this.sourceInfo.index;
+            },
+            eventArgs: function () {
+              return {
+                source: this.sourceInfo,
+                dest: {
+                  index: this.index,
+                  sortableScope: this.parent
+                }
+              };
+            },
+            apply: function () {
+              this.sourceInfo.sortableScope.removeItem(this.sourceInfo.index); // Remove from source.
+              this.parent.insertItem(this.index, this.source.modelValue); // Insert in to destination.
+            }
+          };
+        },
+
+        /**
+         * Check the drag is not allowed for the element.
+         *
+         * @param element - the element to check
+         * @returns {boolean} - true if drag is not allowed.
+         */
+        noDrag: function (element) {
+          return element.attr('no-drag') !== undefined || element.attr('data-no-drag') !== undefined;
+        }
+      };
+    }
+  ]);
+
+}());
+/*jshint undef: false, unused: false, indent: 2*/
+/*global angular: false */
+
+(function () {
+
+  'use strict';
+  var mainModule = angular.module('ui.sortable');
+
+  /**
+   * Controller for Sortable.
+   * @param $scope - the sortable scope.
+   */
+  mainModule.controller('ui.sortable.sortableController', ['$scope', function ($scope) {
+
+    this.scope = $scope;
+
+    $scope.modelValue = null; // sortable list.
+    $scope.callbacks = null;
+    $scope.type = 'sortable';
+    $scope.options = {};
+    $scope.isDisabled = false;
+
+    /**
+     * Inserts the item in to the sortable list.
+     *
+     * @param index - the item index.
+     * @param itemData - the item model data.
+     */
+    $scope.insertItem = function (index, itemData) {
+      $scope.safeApply(function () {
+        $scope.modelValue.splice(index, 0, itemData);
+      });
+    };
+
+    /**
+     * Removes the item from the sortable list.
+     *
+     * @param index - index to be removed.
+     * @returns {*} - removed item.
+     */
+    $scope.removeItem = function (index) {
+      var removedItem = null;
+      if (index > -1) {
+        $scope.safeApply(function () {
+          removedItem = $scope.modelValue.splice(index, 1)[0];
+        });
+      }
+      return removedItem;
+    };
+
+    /**
+     * Checks whether the sortable list is empty.
+     *
+     * @returns {null|*|$scope.modelValue|boolean}
+     */
+    $scope.isEmpty = function () {
+      return ($scope.modelValue && $scope.modelValue.length === 0);
+    };
+
+    /**
+     * Wrapper for the accept callback delegates to callback.
+     *
+     * @param sourceItemHandleScope - drag item handle scope.
+     * @param destScope - sortable target scope.
+     * @param destItemScope - sortable destination item scope.
+     * @returns {*|boolean} - true if drop is allowed for the drag item in drop target.
+     */
+    $scope.accept = function (sourceItemHandleScope, destScope, destItemScope) {
+      return $scope.callbacks.accept(sourceItemHandleScope, destScope, destItemScope);
+    };
+
+    /**
+     * Checks the current phase before executing the function.
+     *
+     * @param fn the function to execute.
+     */
+    $scope.safeApply = function (fn) {
+      var phase = this.$root.$$phase;
+      if (phase === '$apply' || phase === '$digest') {
+        if (fn && (typeof fn === 'function')) {
+          fn();
+        }
+      } else {
+        this.$apply(fn);
+      }
+    };
+
+  }]);
+
+  /**
+   * Sortable directive - defines callbacks.
+   * Parent directive for draggable and sortable items.
+   * Sets modelValue, callbacks, element in scope.
+   */
+  mainModule.directive('asSortable',
+    function () {
+      return {
+        require: 'ngModel', // get a hold of NgModelController
+        restrict: 'A',
+        scope: true,
+        controller: 'ui.sortable.sortableController',
+        link: function (scope, element, attrs, ngModelController) {
+
+          var ngModel, callbacks;
+
+          ngModel = ngModelController;
+
+          if (!ngModel) {
+            return; // do nothing if no ng-model
+          }
+
+          // Set the model value in to scope.
+          ngModel.$render = function () {
+            //set an empty array, in case if none is provided.
+            if (!ngModel.$modelValue || !angular.isArray(ngModel.$modelValue)) {
+              ngModel.$setViewValue([]);
+            }
+            scope.modelValue = ngModel.$modelValue;
+          };
+          //set the element in scope to be accessed by its sub scope.
+          scope.element = element;
+
+          callbacks = {accept: null, orderChanged: null, itemMoved: null, dragStart: null, dragCancel: null, dragEnd: null};
+
+          /**
+           * Invoked to decide whether to allow drop.
+           *
+           * @param sourceItemHandleScope - the drag item handle scope.
+           * @param destSortableScope - the drop target sortable scope.
+           * @param destItemScope - the drop target item scope.
+           * @returns {boolean} - true if allowed for drop.
+           */
+          callbacks.accept = function (sourceItemHandleScope, destSortableScope, destItemScope) {
+            return true;
+          };
+
+          /**
+           * Invoked when order of a drag item is changed.
+           *
+           * @param event - the event object.
+           */
+          callbacks.orderChanged = function (event) {
+          };
+
+          /**
+           * Invoked when the item is moved to other sortable.
+           *
+           * @param event - the event object.
+           */
+          callbacks.itemMoved = function (event) {
+          };
+
+          /**
+           * Invoked when the drag started successfully.
+           *
+           * @param event - the event object.
+           */
+          callbacks.dragStart = function (event) {
+          };
+
+          /**
+           * Invoked when the drag cancelled.
+           *
+           * @param event - the event object.
+           */
+          callbacks.dragCancel = function (event) {
+          };
+
+          /**
+           * Invoked when the drag stopped.
+           *
+           * @param event - the event object.
+           */
+          callbacks.dragEnd = function (event) {
+          };
+
+          //Set the sortOptions callbacks else set it to default.
+          scope.$watch(attrs.asSortable, function (newVal, oldVal) {
+            angular.forEach(newVal, function (value, key) {
+              if (callbacks[key]) {
+                if (typeof value === 'function') {
+                  callbacks[key] = value;
+                }
+              } else {
+                scope.options[key] = value;
+              }
+            });
+            scope.callbacks = callbacks;
+          }, true);
+
+          // Set isDisabled if attr is set, if undefined isDisabled = false
+          if(angular.isDefined(attrs.isDisabled)) {
+            scope.$watch(attrs.isDisabled, function (newVal, oldVal) {
+              if(!angular.isUndefined(newVal)) {
+                scope.isDisabled = newVal;
+              }
+            }, true);
+          }
+        }
+      };
+    });
+
+}());
+
+/*jshint indent: 2 */
+/*global angular: false */
+
+(function () {
+
+  'use strict';
+  var mainModule = angular.module('ui.sortable');
+
+  /**
+   * Controller for sortableItemHandle
+   *
+   * @param $scope - item handle scope.
+   */
+  mainModule.controller('ui.sortable.sortableItemHandleController', ['$scope', function ($scope) {
+
+    this.scope = $scope;
+
+    $scope.itemScope = null;
+    $scope.type = 'handle';
+  }]);
+
+  /**
+   * Directive for sortable item handle.
+   */
+  mainModule.directive('asSortableItemHandle', ['sortableConfig', '$helper', '$window', '$document',
+    function (sortableConfig, $helper, $window, $document) {
+      return {
+        require: '^asSortableItem',
+        scope: true,
+        restrict: 'A',
+        controller: 'ui.sortable.sortableItemHandleController',
+        link: function (scope, element, attrs, itemController) {
+
+          var dragElement, //drag item element.
+            placeHolder, //place holder class element.
+            placeElement,//hidden place element.
+            itemPosition, //drag item element position.
+            dragItemInfo, //drag item data.
+            containment,//the drag container.
+            containerPositioning, // absolute or relative positioning.
+            dragListen,// drag listen event.
+            scrollableContainer, //the scrollable container
+            dragStart,// drag start event.
+            dragMove,//drag move event.
+            dragEnd,//drag end event.
+            dragCancel,//drag cancel event.
+            isDraggable,//is element draggable.
+            isDragBefore,//is element moved up direction.
+            isPlaceHolderPresent,//is placeholder present.
+            bindDrag,//bind drag events.
+            unbindDrag,//unbind drag events.
+            bindEvents,//bind the drag events.
+            unBindEvents,//unbind the drag events.
+            hasTouch,// has touch support.
+            dragHandled, //drag handled.
+            isDisabled = false; // drag enabled
+
+          hasTouch = $window.hasOwnProperty('ontouchstart');
+
+          if (sortableConfig.handleClass) {
+            element.addClass(sortableConfig.handleClass);
+          }
+
+          scope.itemScope = itemController.scope;
+
+          scope.$watch('sortableScope.isDisabled', function(newVal) {
+            if(isDisabled !== newVal) {
+              isDisabled = newVal;
+              if(isDisabled) {
+                unbindDrag();
+              } else {
+                bindDrag();
+              }
+            }
+          });
+
+          /**
+          * Listens for a 10px movement before
+          * dragStart is called to allow for
+          * a click event on the element.
+          *
+          * @param event - the event object.
+          */
+          dragListen = function (event) {
+
+            var unbindMoveListen = function () {
+              angular.element($document).unbind('mousemove', moveListen);
+              angular.element($document).unbind('touchmove', moveListen);
+              element.unbind('mouseup', unbindMoveListen);
+              element.unbind('touchend', unbindMoveListen);
+              element.unbind('touchcancel', unbindMoveListen);
+            };
+            
+            var startPosition;
+            var moveListen = function (e) {
+              e.preventDefault();
+              var eventObj = $helper.eventObj(e);
+              if (!startPosition) {
+                startPosition = { clientX: eventObj.clientX, clientY: eventObj.clientY };
+              }
+              if (Math.abs(eventObj.clientX - startPosition.clientX) + Math.abs(eventObj.clientY - startPosition.clientY) > 10) {
+                unbindMoveListen();
+                dragStart(event);
+              }
+            };
+            
+            angular.element($document).bind('mousemove', moveListen);
+            angular.element($document).bind('touchmove', moveListen);
+            element.bind('mouseup', unbindMoveListen);
+            element.bind('touchend', unbindMoveListen);
+            element.bind('touchcancel', unbindMoveListen);
+          };
+
+          /**
+           * Triggered when drag event starts.
+           *
+           * @param event the event object.
+           */
+          dragStart = function (event) {
+
+            var eventObj, tagName;
+
+            if (!hasTouch && (event.button === 2 || event.which === 3)) {
+              // disable right click
+              return;
+            }
+            if (hasTouch && $helper.isTouchInvalid(event)) {
+              return;
+            }
+            if (dragHandled || !isDraggable(event)) {
+              // event has already fired in other scope.
+              return;
+            }
+            // Set the flag to prevent other items from inheriting the drag event
+            dragHandled = true;
+            event.preventDefault();
+            eventObj = $helper.eventObj(event);
+
+            // (optional) Scrollable container as reference for top & left offset calculations, defaults to Document
+            scrollableContainer = angular.element($document[0].querySelector(scope.sortableScope.options.scrollableContainer)).length > 0 ?
+              $document[0].querySelector(scope.sortableScope.options.scrollableContainer) : $document[0].documentElement;
+
+            containment = angular.element($document[0].querySelector(scope.sortableScope.options.containment)).length > 0 ?
+              angular.element($document[0].querySelector(scope.sortableScope.options.containment)) : angular.element($document[0].body);
+            //capture mouse move on containment.
+            containment.css('cursor', 'move');
+
+            // container positioning
+            containerPositioning = scope.sortableScope.options.containerPositioning || 'absolute';
+
+            dragItemInfo = $helper.dragItem(scope);
+            tagName = scope.itemScope.element.prop('tagName');
+
+            dragElement = angular.element($document[0].createElement(scope.sortableScope.element.prop('tagName')))
+              .addClass(scope.sortableScope.element.attr('class')).addClass(sortableConfig.dragClass);
+            dragElement.css('width', $helper.width(scope.itemScope.element) + 'px');
+            dragElement.css('height', $helper.height(scope.itemScope.element) + 'px');
+
+            placeHolder = angular.element($document[0].createElement(tagName))
+                .addClass(sortableConfig.placeHolderClass).addClass(scope.sortableScope.options.additionalPlaceholderClass);
+            placeHolder.css('width', $helper.width(scope.itemScope.element) + 'px');
+            placeHolder.css('height', $helper.height(scope.itemScope.element) + 'px');
+
+            placeElement = angular.element($document[0].createElement(tagName));
+            if (sortableConfig.hiddenClass) {
+              placeElement.addClass(sortableConfig.hiddenClass);
+            }
+
+            itemPosition = $helper.positionStarted(eventObj, scope.itemScope.element, scrollableContainer);
+            //fill the immediate vacuum.
+            scope.itemScope.element.after(placeHolder);
+            //hidden place element in original position.
+            scope.itemScope.element.after(placeElement);
+            dragElement.append(scope.itemScope.element);
+
+            containment.append(dragElement);
+            $helper.movePosition(eventObj, dragElement, itemPosition, containment, containerPositioning, scrollableContainer);
+
+            scope.sortableScope.$apply(function () {
+              scope.callbacks.dragStart(dragItemInfo.eventArgs());
+            });
+            bindEvents();
+          };
+
+          /**
+           * Allow Drag if it is a proper item-handle element.
+           *
+           * @param event - the event object.
+           * @return boolean - true if element is draggable.
+           */
+          isDraggable = function (event) {
+
+            var elementClicked, sourceScope, isDraggable;
+
+            elementClicked = angular.element(event.target);
+            sourceScope = elementClicked.scope();
+
+            // look for the handle on the current scope or parent scopes
+            isDraggable = false;
+            while (!isDraggable && sourceScope !== undefined) {
+              if (sourceScope.type && sourceScope.type === 'handle') {
+                isDraggable = true;
+              } else {
+                sourceScope = sourceScope.$parent;
+              }
+            }
+
+            //If a 'no-drag' element inside item-handle if any.
+            while (isDraggable && elementClicked[0] !== element[0]) {
+              if ($helper.noDrag(elementClicked)) {
+                isDraggable = false;
+              }
+              elementClicked = elementClicked.parent();
+            }
+            return isDraggable;
+          };
+
+          /**
+           * Inserts the placeHolder in to the targetScope.
+           *
+           * @param targetElement the target element
+           * @param targetScope the target scope
+           */
+          function insertBefore(targetElement, targetScope) {
+            targetElement[0].parentNode.insertBefore(placeHolder[0], targetElement[0]);
+            dragItemInfo.moveTo(targetScope.sortableScope, targetScope.index());
+          }
+
+          /**
+           * Inserts the placeHolder next to the targetScope.
+           *
+           * @param targetElement the target element
+           * @param targetScope the target scope
+           */
+          function insertAfter(targetElement, targetScope) {
+            targetElement.after(placeHolder);
+            dragItemInfo.moveTo(targetScope.sortableScope, targetScope.index() + 1);
+          }
+
+          /**
+           * Triggered when drag is moving.
+           *
+           * @param event - the event object.
+           */
+          dragMove = function (event) {
+
+            var eventObj, targetX, targetY, targetScope, targetElement;
+
+            if (hasTouch && $helper.isTouchInvalid(event)) {
+              return;
+            }
+            // Ignore event if not handled
+            if (!dragHandled) {
+              return;
+            }
+            if (dragElement) {
+
+              event.preventDefault();
+
+              eventObj = $helper.eventObj(event);
+              $helper.movePosition(eventObj, dragElement, itemPosition, containment, containerPositioning, scrollableContainer);
+
+              targetX = eventObj.pageX - $document[0].documentElement.scrollLeft;
+              targetY = eventObj.pageY - ($window.pageYOffset || $document[0].documentElement.scrollTop);
+
+              //IE fixes: hide show element, call element from point twice to return pick correct element.
+              dragElement.addClass(sortableConfig.hiddenClass);
+              $document[0].elementFromPoint(targetX, targetY);
+              targetElement = angular.element($document[0].elementFromPoint(targetX, targetY));
+              dragElement.removeClass(sortableConfig.hiddenClass);
+
+              targetScope = targetElement.scope();
+
+              if (!targetScope || !targetScope.type) {
+                return;
+              }
+              if (targetScope.type === 'handle') {
+                targetScope = targetScope.itemScope;
+              }
+              if (targetScope.type !== 'item' && targetScope.type !== 'sortable') {
+                return;
+              }
+
+              if (targetScope.type === 'item') {
+                targetElement = targetScope.element;
+                if (targetScope.sortableScope.accept(scope, targetScope.sortableScope, targetScope)) {
+                  if (itemPosition.dirAx && //move horizontal
+                    scope.itemScope.sortableScope.$id === targetScope.sortableScope.$id) { //move same column
+                    itemPosition.distAxX = 0;
+                    if (itemPosition.distX < 0) {//move left
+                      insertBefore(targetElement, targetScope);
+                    } else if (itemPosition.distX > 0) {//move right
+                      insertAfter(targetElement, targetScope);
+                    }
+                  } else { //move vertical
+                    if (isDragBefore(eventObj, targetElement)) {//move up
+                      insertBefore(targetElement, targetScope);
+                    } else {//move bottom
+                      insertAfter(targetElement, targetScope);
+                    }
+                  }
+                }
+              }
+              if (targetScope.type === 'sortable') {//sortable scope.
+                if (targetScope.accept(scope, targetScope) &&
+                  targetElement[0].parentNode !== targetScope.element[0]) {
+                  //moving over sortable bucket. not over item.
+                  if (!isPlaceHolderPresent(targetElement)) {
+                    //append to bottom.
+                    targetElement[0].appendChild(placeHolder[0]);
+                    dragItemInfo.moveTo(targetScope, targetScope.modelValue.length);
+                  }
+                }
+              }
+            }
+          };
+
+          /**
+           * Check there is no place holder placed by itemScope.
+           * @param targetElement the target element to check with.
+           * @returns {*} true if place holder present.
+           */
+          isPlaceHolderPresent = function (targetElement) {
+            var itemElements, hasPlaceHolder, i;
+
+            itemElements = targetElement.children();
+            for (i = 0; i < itemElements.length; i += 1) {
+              if (angular.element(itemElements[i]).hasClass(sortableConfig.placeHolderClass)) {
+                hasPlaceHolder = true;
+                break;
+              }
+            }
+            return hasPlaceHolder;
+          };
+
+
+          /**
+           * Determines whether the item is dragged upwards.
+           *
+           * @param eventObj - the event object.
+           * @param targetElement - the target element.
+           * @returns {boolean} - true if moving upwards.
+           */
+          isDragBefore = function (eventObj, targetElement) {
+            var dragBefore, targetOffset;
+
+            dragBefore = false;
+            // check it's new position
+            targetOffset = $helper.offset(targetElement);
+            if ($helper.offset(placeHolder).top > targetOffset.top) { // the move direction is up?
+              dragBefore = $helper.offset(dragElement).top < targetOffset.top + $helper.height(targetElement) / 2;
+            } else {
+              dragBefore = eventObj.pageY < targetOffset.top;
+            }
+            return dragBefore;
+          };
+
+          /**
+           * Rollback the drag data changes.
+           */
+
+          function rollbackDragChanges() {
+            placeElement.replaceWith(scope.itemScope.element);
+            placeHolder.remove();
+            dragElement.remove();
+            dragElement = null;
+            dragHandled = false;
+            containment.css('cursor', '');
+          }
+
+          /**
+           * triggered while drag ends.
+           *
+           * @param event - the event object.
+           */
+          dragEnd = function (event) {
+            // Ignore event if not handled
+            if (!dragHandled) {
+              return;
+            }
+            event.preventDefault();
+            if (dragElement) {
+              //rollback all the changes.
+              rollbackDragChanges();
+              // update model data
+              dragItemInfo.apply();
+              scope.sortableScope.$apply(function () {
+                if (dragItemInfo.isSameParent()) {
+                  if (dragItemInfo.isOrderChanged()) {
+                    scope.callbacks.orderChanged(dragItemInfo.eventArgs());
+                  }
+                } else {
+                  scope.callbacks.itemMoved(dragItemInfo.eventArgs());
+                }
+              });
+              scope.sortableScope.$apply(function () {
+                scope.callbacks.dragEnd(dragItemInfo.eventArgs());
+              });
+              dragItemInfo = null;
+            }
+            unBindEvents();
+          };
+
+          /**
+           * triggered while drag is cancelled.
+           *
+           * @param event - the event object.
+           */
+          dragCancel = function (event) {
+            // Ignore event if not handled
+            if (!dragHandled) {
+              return;
+            }
+            event.preventDefault();
+
+            if (dragElement) {
+              //rollback all the changes.
+              rollbackDragChanges();
+              scope.sortableScope.$apply(function () {
+                scope.callbacks.dragCancel(dragItemInfo.eventArgs());
+              });
+              dragItemInfo = null;
+            }
+            unBindEvents();
+          };
+
+          /**
+           * Binds the drag start events.
+           */
+          bindDrag = function () {
+            element.bind('touchstart', dragListen);
+            element.bind('mousedown', dragListen);
+          };
+
+          /**
+           * Unbinds the drag start events.
+           */
+          unbindDrag = function () {
+            element.unbind('touchstart', dragListen);
+            element.unbind('mousedown', dragListen);
+          };
+
+          //bind drag start events.
+          bindDrag();
+
+          //Cancel drag on escape press.
+          angular.element($document[0].body).bind('keydown', function (event) {
+            if (event.keyCode === 27) {
+              dragCancel(event);
+            }
+          });
+
+          /**
+           * Binds the events based on the actions.
+           */
+          bindEvents = function () {
+            angular.element($document).bind('touchmove', dragMove);
+            angular.element($document).bind('touchend', dragEnd);
+            angular.element($document).bind('touchcancel', dragCancel);
+            angular.element($document).bind('mousemove', dragMove);
+            angular.element($document).bind('mouseup', dragEnd);
+          };
+
+          /**
+           * Un binds the events for drag support.
+           */
+          unBindEvents = function () {
+            angular.element($document).unbind('touchend', dragEnd);
+            angular.element($document).unbind('touchcancel', dragCancel);
+            angular.element($document).unbind('touchmove', dragMove);
+            angular.element($document).unbind('mouseup', dragEnd);
+            angular.element($document).unbind('mousemove', dragMove);
+          };
+        }
+      };
+    }]);
+}());
+
+/*jshint indent: 2 */
+/*global angular: false */
+
+(function () {
+
+  'use strict';
+  var mainModule = angular.module('ui.sortable');
+
+  /**
+   * Controller for sortable item.
+   *
+   * @param $scope - drag item scope
+   */
+  mainModule.controller('ui.sortable.sortableItemController', ['$scope', function ($scope) {
+
+    this.scope = $scope;
+
+    $scope.sortableScope = null;
+    $scope.modelValue = null; // sortable item.
+    $scope.type = 'item';
+
+    /**
+     * returns the index of the drag item from the sortable list.
+     *
+     * @returns {*} - index value.
+     */
+    $scope.index = function () {
+      return $scope.sortableScope.modelValue.indexOf($scope.modelValue);
+    };
+
+    /**
+     * Returns the item model data.
+     *
+     * @returns {*} - item model value.
+     */
+    $scope.itemData = function () {
+      return $scope.sortableScope.modelValue[$scope.$index];
+    };
+
+  }]);
+
+  /**
+   * sortableItem directive.
+   */
+  mainModule.directive('asSortableItem', ['sortableConfig',
+    function (sortableConfig) {
+      return {
+        require: '^asSortable',
+        restrict: 'A',
+        controller: 'ui.sortable.sortableItemController',
+        link: function (scope, element, attrs, sortableController) {
+
+          if (sortableConfig.itemClass) {
+            element.addClass(sortableConfig.itemClass);
+          }
+          scope.sortableScope = sortableController.scope;
+          scope.modelValue = sortableController.scope.modelValue[scope.$index];
+          scope.element = element;
+        }
+      };
+    }]);
+
+}());
+/**
+ * @license AngularJS v1.3.8
+ * (c) 2010-2014 Google, Inc. http://angularjs.org
+ * License: MIT
+ */
+(function(window, angular, undefined) {'use strict';
+
+/**
+ * @ngdoc module
+ * @name ngCookies
+ * @description
+ *
+ * # ngCookies
+ *
+ * The `ngCookies` module provides a convenient wrapper for reading and writing browser cookies.
+ *
+ *
+ * <div doc-module-components="ngCookies"></div>
+ *
+ * See {@link ngCookies.$cookies `$cookies`} and
+ * {@link ngCookies.$cookieStore `$cookieStore`} for usage.
+ */
+
+
+angular.module('ngCookies', ['ng']).
+  /**
+   * @ngdoc service
+   * @name $cookies
+   *
+   * @description
+   * Provides read/write access to browser's cookies.
+   *
+   * Only a simple Object is exposed and by adding or removing properties to/from this object, new
+   * cookies are created/deleted at the end of current $eval.
+   * The object's properties can only be strings.
+   *
+   * Requires the {@link ngCookies `ngCookies`} module to be installed.
+   *
+   * @example
+   *
+   * ```js
+   * angular.module('cookiesExample', ['ngCookies'])
+   *   .controller('ExampleController', ['$cookies', function($cookies) {
+   *     // Retrieving a cookie
+   *     var favoriteCookie = $cookies.myFavorite;
+   *     // Setting a cookie
+   *     $cookies.myFavorite = 'oatmeal';
+   *   }]);
+   * ```
+   */
+   factory('$cookies', ['$rootScope', '$browser', function($rootScope, $browser) {
+      var cookies = {},
+          lastCookies = {},
+          lastBrowserCookies,
+          runEval = false,
+          copy = angular.copy,
+          isUndefined = angular.isUndefined;
+
+      //creates a poller fn that copies all cookies from the $browser to service & inits the service
+      $browser.addPollFn(function() {
+        var currentCookies = $browser.cookies();
+        if (lastBrowserCookies != currentCookies) { //relies on browser.cookies() impl
+          lastBrowserCookies = currentCookies;
+          copy(currentCookies, lastCookies);
+          copy(currentCookies, cookies);
+          if (runEval) $rootScope.$apply();
+        }
+      })();
+
+      runEval = true;
+
+      //at the end of each eval, push cookies
+      //TODO: this should happen before the "delayed" watches fire, because if some cookies are not
+      //      strings or browser refuses to store some cookies, we update the model in the push fn.
+      $rootScope.$watch(push);
+
+      return cookies;
+
+
+      /**
+       * Pushes all the cookies from the service to the browser and verifies if all cookies were
+       * stored.
+       */
+      function push() {
+        var name,
+            value,
+            browserCookies,
+            updated;
+
+        //delete any cookies deleted in $cookies
+        for (name in lastCookies) {
+          if (isUndefined(cookies[name])) {
+            $browser.cookies(name, undefined);
+          }
+        }
+
+        //update all cookies updated in $cookies
+        for (name in cookies) {
+          value = cookies[name];
+          if (!angular.isString(value)) {
+            value = '' + value;
+            cookies[name] = value;
+          }
+          if (value !== lastCookies[name]) {
+            $browser.cookies(name, value);
+            updated = true;
+          }
+        }
+
+        //verify what was actually stored
+        if (updated) {
+          updated = false;
+          browserCookies = $browser.cookies();
+
+          for (name in cookies) {
+            if (cookies[name] !== browserCookies[name]) {
+              //delete or reset all cookies that the browser dropped from $cookies
+              if (isUndefined(browserCookies[name])) {
+                delete cookies[name];
+              } else {
+                cookies[name] = browserCookies[name];
+              }
+              updated = true;
+            }
+          }
+        }
+      }
+    }]).
+
+
+  /**
+   * @ngdoc service
+   * @name $cookieStore
+   * @requires $cookies
+   *
+   * @description
+   * Provides a key-value (string-object) storage, that is backed by session cookies.
+   * Objects put or retrieved from this storage are automatically serialized or
+   * deserialized by angular's toJson/fromJson.
+   *
+   * Requires the {@link ngCookies `ngCookies`} module to be installed.
+   *
+   * @example
+   *
+   * ```js
+   * angular.module('cookieStoreExample', ['ngCookies'])
+   *   .controller('ExampleController', ['$cookieStore', function($cookieStore) {
+   *     // Put cookie
+   *     $cookieStore.put('myFavorite','oatmeal');
+   *     // Get cookie
+   *     var favoriteCookie = $cookieStore.get('myFavorite');
+   *     // Removing a cookie
+   *     $cookieStore.remove('myFavorite');
+   *   }]);
+   * ```
+   */
+   factory('$cookieStore', ['$cookies', function($cookies) {
+
+      return {
+        /**
+         * @ngdoc method
+         * @name $cookieStore#get
+         *
+         * @description
+         * Returns the value of given cookie key
+         *
+         * @param {string} key Id to use for lookup.
+         * @returns {Object} Deserialized cookie value.
+         */
+        get: function(key) {
+          var value = $cookies[key];
+          return value ? angular.fromJson(value) : value;
+        },
+
+        /**
+         * @ngdoc method
+         * @name $cookieStore#put
+         *
+         * @description
+         * Sets a value for given cookie key
+         *
+         * @param {string} key Id for the `value`.
+         * @param {Object} value Value to be stored.
+         */
+        put: function(key, value) {
+          $cookies[key] = angular.toJson(value);
+        },
+
+        /**
+         * @ngdoc method
+         * @name $cookieStore#remove
+         *
+         * @description
+         * Remove given cookie
+         *
+         * @param {string} key Id of the key-value pair to delete.
+         */
+        remove: function(key) {
+          delete $cookies[key];
+        }
+      };
+
+    }]);
+
+
+})(window, window.angular);

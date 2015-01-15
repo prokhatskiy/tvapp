@@ -19,13 +19,12 @@
 
         <div ng-show="(gridType.value == 'Grid')">
             <div class="row">
-                <div class="col-md-4" ng-repeat="slide in slides | filter:filterString">
+                <div class="col-md-4" ng-repeat="slide in slides | filter: filterString">
                     <div class="thumbnail">
-                        <a href="#{{ROUTES.ADMIN_EDIT}}/{{slide.id}}"><img src="{{slide.src || 'http://placehold.it/300x300&text=placeholder'}}" alt="{{slide.title}}"></a>
+                        <a href="#{{ROUTES.ADMIN_EDIT}}/{{slide._id}}"><img src="{{slide.imageSrc || 'http://placehold.it/300x300&text=placeholder'}}" alt="{{slide.title}}"></a>
                         <div class="caption">
-                            <div>id: {{slide.id}}</div>
-                            <div>title: {{slide.title}}</div>
-                            <div>type: {{slide.type}}</div>
+                            <div>title: {{slide.title || slide.name}}</div>
+                            <div>type: {{slide.slideType}}</div>
                             <div>active: {{slide.isActive}}</div>
                         </div>
                     </div>
@@ -36,20 +35,16 @@
         <div ng-show="gridType.value == 'Table'">
             <table class="table">
                 <tr>
-                    <th>id</th>
                     <th>Title</th>
                     <th>Type</th>
                     <th>Active</th>
                 </tr>
-                <tr ng-repeat="slide in slides | filter:filterString">
+                <tr ng-repeat="slide in slides | filter: filterString | orderBy: slide.generalOrder">
                     <td>
-                        {{slide.id}}
+                        <a href="#{{ROUTES.ADMIN_EDIT}}/{{slide._id}}">{{slide.title || slide.name}}</a>
                     </td>
                     <td>
-                        <a href="#{{ROUTES.ADMIN_EDIT}}/{{slide.id}}">{{slide.title}}</a>
-                    </td>
-                    <td>
-                        {{slide.type}}
+                        {{slide.slideType}}
                     </td>
                     <td>
                         {{slide.isActive}}
