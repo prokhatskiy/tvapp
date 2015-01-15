@@ -26,7 +26,8 @@ tvapp
             LOGIN: '/services/login',
             LOGOUT: '/services/logout',
             GET_SLIDE: '/services/slide',
-            POST_SLIDE: '/services/slide/post',
+            POST_SLIDE: '/services/slide',
+            DELETE_SLIDE: '/services/slide',
             UPLOAD_IMG: '/fakeData/src.json'
         }
     }()))

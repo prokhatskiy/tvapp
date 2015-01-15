@@ -15,7 +15,8 @@ var DEFAULTS = {
     SERVICES: {
         ROOT: 'services',
         GET_SLIDE: 'slide',
-        POST_SLIDE: 'slide/post',
+        POST_SLIDE: 'slide',
+        DELETE_SLIDE: 'slide',
         GET_TIMELINE: 'timeline',
         POST_TIMELINE: 'timeline',
         GET_SLIDES: 'slides',
@@ -120,9 +121,17 @@ router.post('/' + DEFAULTS.SERVICES.ROOT + '/' + DEFAULTS.SERVICES.POST_SLIDES, 
 });
 
 router.get('/' + DEFAULTS.SERVICES.ROOT + '/' + DEFAULTS.SERVICES.GET_SLIDE + '/:id', function (req, res) {
-    Slide.find({'_id': req.params.id}, function (err, docs) {
+    Slide.findOne({'_id': req.params.id}, function (err, doc) {
         if (err) return console.log(err);
-        res.send(docs[0]);
+        res.send(doc);
+    });
+});
+
+router.delete('/' + DEFAULTS.SERVICES.ROOT + '/' + DEFAULTS.SERVICES.DELETE_SLIDE + '/:id', function (req, res) {
+    Slide.findOne({'_id': req.params.id}, function (err, doc) {
+        if (err) return console.log(err);
+        doc.remove();
+        res.status(202).send('Ok');
     });
 });
 
