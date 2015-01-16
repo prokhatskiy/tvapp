@@ -14,7 +14,8 @@ tvapp
            LOGIN_ROOT: '/login',
            ADMIN_EDIT: '/edit',
            ADMIN_ADD: '/add',
-           ADMIN_TIMELINES: '/timeline'
+           ADMIN_TIMELINES: '/timeline',
+           ADMIN_IMAGES: '/images'
        }
     }()))
     .constant('SERVICES', (function() {
@@ -44,6 +45,7 @@ tvapp
             .when(ROUTES.ADMIN_EDIT + '/:id', {templateUrl: partialsPath + 'adminSlideEdit.html', controller: 'adminEditCtrl'})
             .when(ROUTES.ADMIN_ADD, {templateUrl: partialsPath + 'adminSlideEdit.html', controller: 'adminEditCtrl'})
             .when(ROUTES.ADMIN_TIMELINES, {templateUrl: partialsPath + 'adminTimeline.html', controller: 'adminTimelineCtrl'})
+            .when(ROUTES.ADMIN_IMAGES, {templateUrl: partialsPath + 'adminImages.html', controller: 'adminImagesCtrl'})
             .otherwise({redirectTo: ROUTES.ADMIN_ROOT});
     }]);
 'use strict';
@@ -141,6 +143,12 @@ tvapp.controller('adminEditCtrl', ["$scope", "$routeParams", "$http", "SERVICES"
             $scope.showError = false;
         }, 5000);
     };
+}]);
+
+'use strict';
+
+tvapp.controller('adminImagesCtrl', ["$rootScope", "$scope", "$http", "SERVICES", "ROUTES", function($rootScope, $scope, $http, SERVICES, ROUTES) {
+
 }]);
 
 'use strict';

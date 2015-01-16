@@ -15,16 +15,18 @@ block content
 
             nav.collapse.navbar-collapse
                 ul.nav.navbar-nav
-                    li
+                    li(ng-hide="isLoginPage")
                         a(href="#{{ROUTES.ADMIN_ROOT}}") Edit Slides
-                    li
+                    li(ng-hide="isLoginPage")
                         a(href="#{{ROUTES.ADMIN_ADD}}") Add Slide
-                    li
+                    li(ng-hide="isLoginPage")
                         a(href="#{{ROUTES.ADMIN_TIMELINES}}") Edit Timeline
-                    li
-                        a(href="{{APP_CONST.SLIDESHOW_URL}}") Run Slideshow
+                    li(ng-hide="isLoginPage")
+                        a(href="#{{ROUTES.ADMIN_IMAGES}}") Manage Images
                     li(ng-hide="isLoginPage")
                         a(href="#{{ROUTES.LOGIN_ROOT}}") Log Out
+                    li
+                        a(href="{{APP_CONST.SLIDESHOW_URL}}") Run Slideshow
     div(ng-view)
     script(src="/js/components.js")
     script(src="/js/app.js")
