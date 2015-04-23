@@ -155,12 +155,6 @@ tvapp.controller('adminEditCtrl', ["$scope", "$routeParams", "$http", "SERVICES"
 
 'use strict';
 
-tvapp.controller('adminImagesCtrl', ["$rootScope", "$scope", "$http", "SERVICES", "ROUTES", function($rootScope, $scope, $http, SERVICES, ROUTES) {
-
-}]);
-
-'use strict';
-
 tvapp.controller('adminSlidesCtrl', ["$rootScope", "$scope", "$http", "SERVICES", "$location", "ROUTES", function($rootScope, $scope, $http, SERVICES, $location, ROUTES) {
     $scope.templates = [
         { name: "Table", url: "/templates/slides/table.html"},
