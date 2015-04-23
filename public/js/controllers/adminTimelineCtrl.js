@@ -1,6 +1,6 @@
 'use strict';
 
-tvapp.controller('adminTimelineCtrl', function($rootScope, $scope, $http, $location, SERVICES, ROUTES, $timeout, $filter) {
+tvapp.controller('adminTimelineCtrl', function($rootScope, $scope, $http, $location, SERVICES, ROUTES) {
     var slides = [];
 
     $scope.slides = {
@@ -31,19 +31,27 @@ tvapp.controller('adminTimelineCtrl', function($rootScope, $scope, $http, $locat
                     $location.path(ROUTES.LOGIN_ROOT);
                     break;
                 default:
-                    showError('adminTimelineCtrl - get Slides FAIL - status: ' + status + ' response: ' + data  + '.');
+                    $scope.message = {
+                        type: 'error',
+                        text: 'adminTimelineCtrl - get Slides FAIL - status: ' + status + ' response: ' + data  + '.',
+                        hide: 5000
+                    };
             }
         });
 
-    $scope.revert = function() {
+    $scope.revert = function revert() {
         populateColumns(slides);
         $scope.isChanged = false;
     };
 
-    $scope.save = function() {
+    $scope.save = function save() {
         $http.post(SERVICES.POST_TIMELINE, writeData($scope.slides.active, $scope.slides.noActive, slides))
             .success(function() {
-                showMessage('Timeline is saved.');
+                $scope.message = {
+                    type: 'message',
+                    text: 'Timeline is saved.',
+                    hide: 5000
+                };
             })
             .error(function(data, status) {
                 switch (status) {
@@ -51,12 +59,16 @@ tvapp.controller('adminTimelineCtrl', function($rootScope, $scope, $http, $locat
                         $location.path(ROUTES.LOGIN_ROOT);
                         break;
                     default:
-                        showError('Timeline is not saved. Please, see console for details. Status code: ' + status + '.');
+                        $scope.message = {
+                            type: 'error',
+                            text: 'Timeline is not saved. Please, see console for details. Status code: ' + status + '.',
+                            hide: 5000
+                        };
                 }
             });
     };
 
-    var writeData = function(activeSlides, noActiveSlides, allSlides) {
+    var writeData = function writeData(activeSlides, noActiveSlides, allSlides) {
         allSlides.forEach(function(slide) {
             var slideData =  _.where(activeSlides, { _id: slide._id});
             var noActiveSlideData = _.where(noActiveSlides, { _id: slide._id});
@@ -97,19 +109,5 @@ tvapp.controller('adminTimelineCtrl', function($rootScope, $scope, $http, $locat
         $scope.slides.noActive.sort(function(a, b) {
             return a.generalOrder - b.generalOrder;
         });
-    };
-
-    var showMessage = function showMessage(message) {
-        $scope.showMessage = message;
-        $timeout(function() {
-            $scope.showMessage = false;
-        }, 5000);
-    };
-
-    var showError = function showError(error) {
-        $scope.showError = error;
-        $timeout(function() {
-            $scope.showError = false;
-        }, 5000);
     };
 });
