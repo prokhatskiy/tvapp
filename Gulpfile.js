@@ -26,7 +26,8 @@ var config = {
 
     app : [
         'public/js/app/*.js',
-        'public/js/controllers/*.js'
+        'public/js/controllers/*.js',
+        'public/js/directives/*.js'
     ],
 
     jsDist : 'public/js',

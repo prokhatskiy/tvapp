@@ -28,14 +28,11 @@
             </div>
         </div>
     </div>
+
     <div class="row" style="margin-bottom: 30px;">
         <button type="submit" class="btn btn-success" ng-click="save()" ng-disabled="!isChanged">Save</button>
         <button type="button" class="btn btn-danger" ng-click="revert()" ng-disabled="!isChanged">Revert</button>
     </div>
-    <div class="row" ng-show="showMessage">
-        <div class="panel panel-success"><div class="panel-heading">{{showMessage}}</div></div>
-    </div>
-    <div class="row" ng-show="showError">
-        <div class="panel panel-danger"><div class="panel-heading">{{showError}}</div></div>
-    </div>
+
+    <div ui-messages="message"></div>
 </div>

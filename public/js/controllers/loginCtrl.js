@@ -24,7 +24,10 @@ tvapp.controller('loginCtrl', function($rootScope, $scope, $http, $cookies, $loc
                 $location.path(ROUTES.ADMIN_ROOT);
             })
             .error(function(data) {
-                $scope.error = data;
+                $scope.message = {
+                    type: 'error',
+                    text: data
+                };
             });
     }
 });

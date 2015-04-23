@@ -46,6 +46,7 @@ tvapp
             .when(ROUTES.ADMIN_TIMELINES, {templateUrl: partialsPath + 'adminTimeline.html', controller: 'adminTimelineCtrl'})
             .otherwise({redirectTo: ROUTES.ADMIN_ROOT});
     }]);
+
 'use strict';
 
 tvapp.controller('adminEditCtrl', ["$scope", "$routeParams", "$http", "SERVICES", "$timeout", "$location", "ROUTES", function($scope, $routeParams, $http, SERVICES, $timeout, $location, ROUTES) {
@@ -72,8 +73,6 @@ tvapp.controller('adminEditCtrl', ["$scope", "$routeParams", "$http", "SERVICES"
     $scope.isNewItem = true;
     $scope.isChanged = false;
     $scope.imageSrc = '';
-    $scope.showMessage = false;
-    $scope.showError = false;
 
     $scope.$watchCollection('currentData', function() {
         $scope.isChanged = !angular.equals($scope.currentData, slideData);
@@ -93,7 +92,11 @@ tvapp.controller('adminEditCtrl', ["$scope", "$routeParams", "$http", "SERVICES"
                         $location.path(ROUTES.LOGIN_ROOT);
                         break;
                     default:
-                        showError('Slide cannot be loaded.' + 'Status code: ' + status);
+                        $scope.message = {
+                            type: 'error',
+                            text: 'Slide cannot be loaded. Status code: ' + status,
+                            hide: 5000
+                        };
                 }
             });
     } else {
@@ -104,7 +107,11 @@ tvapp.controller('adminEditCtrl', ["$scope", "$routeParams", "$http", "SERVICES"
                         $location.path(ROUTES.LOGIN_ROOT);
                         break;
                     default:
-                        showError('Cannot check access.' + 'Status code: ' + status);
+                        $scope.message = {
+                            type: 'error',
+                            text: 'Cannot check access. Status code: ' + status,
+                            hide: 5000
+                        };
                 }
             });
     }
@@ -116,7 +123,11 @@ tvapp.controller('adminEditCtrl', ["$scope", "$routeParams", "$http", "SERVICES"
     $scope.save = function save() {
         $http.post(SERVICES.POST_SLIDE, $scope.currentData)
             .success(function() {
-                showMessage('This slide is saved.');
+                $scope.message = {
+                    type: 'message',
+                    text: 'This slide is saved.',
+                    hide: 5000
+                };
             })
             .error(function(data, status) {
                 switch (status) {
@@ -124,7 +135,11 @@ tvapp.controller('adminEditCtrl', ["$scope", "$routeParams", "$http", "SERVICES"
                         $location.path(ROUTES.LOGIN_ROOT);
                         break;
                     default:
-                        showError('This slide is not saved. Please, see console for details. Status code: ' + status);
+                        $scope.message = {
+                            type: 'error',
+                            text: 'This slide is not saved. Please, see console for details. Status code: ' + status,
+                            hide: 5000
+                        };
                 }
             });
     };
@@ -136,20 +151,6 @@ tvapp.controller('adminEditCtrl', ["$scope", "$routeParams", "$http", "SERVICES"
 
     $scope.addEmployee = function addEmployee() {
         $scope.currentData.employees.push(employeesTemplate);
-    };
-
-    var showMessage = function showMessage(message) {
-        $scope.showMessage = message;
-        $timeout(function() {
-            $scope.showMessage = false;
-        }, 5000);
-    };
-
-    var showError = function showError(error) {
-        $scope.showError = error;
-        $timeout(function() {
-            $scope.showError = false;
-        }, 5000);
     };
 }]);
 
@@ -354,7 +355,30 @@ tvapp.controller('loginCtrl', ["$rootScope", "$scope", "$http", "$cookies", "$lo
                 $location.path(ROUTES.ADMIN_ROOT);
             })
             .error(function(data) {
-                $scope.error = data;
+                $scope.message = {
+                    type: 'error',
+                    text: data
+                };
             });
     }
+}]);
+tvapp.directive('uiMessages', ["$timeout", function($timeout) {
+    return {
+        templateUrl: '/templates/global/messages.html',
+        link: function(scope) {
+            scope.$watch('message', function() {
+                if (!Boolean(scope.message)) {
+                    return false;
+                }
+
+                scope.message.show = true;
+
+                if (angular.isNumber(scope.message.hide) && scope.message.hide > 0) {
+                    $timeout(function() {
+                        scope.message.show = false;
+                    }, scope.message.hide);
+                }
+            });
+        }
+    };
 }]);
