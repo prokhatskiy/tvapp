@@ -4,58 +4,19 @@
     <div class="panel panel-default">
         <div class="panel-heading">
             <div class="row form-horizontal">
-                <label class="col-md-6 control-label" for="gridView">Grid View:</label>
-                <div class="col-md-2">
-                    <select class="form-control"
-                            id="gridView"
-                            ng-model="gridType.value"
-                            ng-options="v for v in gridType.values">
-                    </select>
+                <div class="col-md-8">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-default {{ (template.url === selectedTemplateUrl) ? 'btn-primary' : ''}}"
+                                              ng-repeat="template in templates"
+                                              ng-click="setTemplate(template)">{{template.name}}</button>
+                    </div>
                 </div>
+
                 <label class="col-md-1 control-label" for="filter">Filter:</label>
                 <div class="col-md-3"><input class="form-control" type="text" ng-model="filterString" id="filter"/></div>
             </div>
         </div>
 
-        <div ng-show="(gridType.value == 'Grid')">
-            <div class="row">
-                <div class="col-md-4" ng-repeat="slide in slides | filter: filterString">
-                    <div class="thumbnail">
-                        <a href="#{{ROUTES.ADMIN_EDIT}}/{{slide._id}}"><img src="{{slide.imageSrc || 'http://placehold.it/300x300&text=placeholder'}}" alt="{{slide.title}}"></a>
-                        <div class="caption">
-                            <div>title: {{slide.title || slide.name}}</div>
-                            <div>type: {{slide.slideType}}</div>
-                            <div>active: {{slide.isActive}}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div ng-show="gridType.value == 'Table'">
-            <table class="table">
-                <tr>
-                    <th>Title</th>
-                    <th>Type</th>
-                    <th>Active</th>
-                    <th></th>
-                </tr>
-                <tr ng-repeat="slide in slides | filter: filterString | orderBy: slide.generalOrder">
-                    <td>
-                        <a href="#{{ROUTES.ADMIN_EDIT}}/{{slide._id}}">{{slide.title || slide.name}}</a>
-                    </td>
-                    <td>
-                        {{slide.slideType}}
-                    </td>
-                    <td>
-                        {{slide.isActive}}
-                    </td>
-                    <td>
-                        <button ng-click="deleteSlide(slide._id)" style="float: right;">Delete Slide</button>
-                    </td>
-                </tr>
-            </table>
-        </div>
-
+        <div ng-include="selectedTemplateUrl"></div>
     </div>
 </div>

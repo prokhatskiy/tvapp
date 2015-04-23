@@ -1,0 +1,12 @@
+<div class="row">
+    <div class="col-md-4" ng-repeat="slide in slides | filter: filterString">
+        <div class="thumbnail">
+            <a href="#{{ROUTES.ADMIN_EDIT}}/{{slide._id}}"><img src="{{slide.imageSrc || 'http://placehold.it/300x300&text=placeholder'}}" alt="{{slide.title}}"></a>
+            <div class="caption">
+                <div>title: {{slide.title || slide.name}}</div>
+                <div>type: {{slide.slideType}}</div>
+                <div>active: {{slide.isActive}}</div>
+            </div>
+        </div>
+    </div>
+</div>

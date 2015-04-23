@@ -152,14 +152,17 @@ tvapp.controller('adminImagesCtrl', ["$rootScope", "$scope", "$http", "SERVICES"
 'use strict';
 
 tvapp.controller('adminSlidesCtrl', ["$rootScope", "$scope", "$http", "SERVICES", "$location", "ROUTES", function($rootScope, $scope, $http, SERVICES, $location, ROUTES) {
-    $scope.gridType = {
-        value: window.localStorage.getItem('gridType') || 'Table',
-        values: ['Table', 'Grid']
-    };
+    $scope.templates = [
+        { name: "Table", url: "/templates/slides/table.html"},
+        { name: "Grid", url: "/templates/slides/grid.html" }
+    ];
 
-    $scope.$watchCollection('gridType', function() {
-        window.localStorage.setItem('gridType', $scope.gridType.value)
-    });
+    $scope.selectedTemplateUrl = window.localStorage.getItem('gridTemplate') || $scope.templates[0].url;
+
+    $scope.setTemplate = function(template) {
+        window.localStorage.setItem('gridTemplate', template.url);
+        $scope.selectedTemplateUrl = template.url;
+    };
 
     $scope.deleteSlide = function(id) {
         if(!confirm('Are you sure?')) return;
