@@ -8,7 +8,6 @@ tvapp.controller('adminTimelineCtrl', function($rootScope, $scope, $http, $locat
         noActive: []
     };
 
-    //fixit
     $scope.isChanged = true;
 
     $scope.timelineSortOpitons = {

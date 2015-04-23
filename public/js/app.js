@@ -163,12 +163,12 @@ tvapp.controller('adminSlidesCtrl', ["$rootScope", "$scope", "$http", "SERVICES"
 
     $scope.selectedTemplateUrl = window.localStorage.getItem('gridTemplate') || $scope.templates[0].url;
 
-    $scope.setTemplate = function(template) {
+    $scope.setTemplate = function setTemplate(template) {
         window.localStorage.setItem('gridTemplate', template.url);
         $scope.selectedTemplateUrl = template.url;
     };
 
-    $scope.deleteSlide = function(id) {
+    $scope.deleteSlide = function deleteSlide(id) {
         if(!confirm('Are you sure?')) return;
 
         $http.delete(SERVICES.DELETE_SLIDE + '/' + id)
@@ -186,7 +186,7 @@ tvapp.controller('adminSlidesCtrl', ["$rootScope", "$scope", "$http", "SERVICES"
             });
     };
 
-    var update = function() {
+    var update = function update() {
         $http.get(SERVICES.ADMIN_SLIDES)
             .success(function(data) {
                 populateSlides(data);
@@ -202,7 +202,7 @@ tvapp.controller('adminSlidesCtrl', ["$rootScope", "$scope", "$http", "SERVICES"
             });
     };
 
-    var populateSlides = function(data) {
+    var populateSlides = function populateSlides(data) {
         $scope.slides = data;
 
         $scope.slides.sort(function(a, b) {
@@ -223,7 +223,6 @@ tvapp.controller('adminTimelineCtrl', ["$rootScope", "$scope", "$http", "$locati
         noActive: []
     };
 
-    //fixit
     $scope.isChanged = true;
 
     $scope.timelineSortOpitons = {
@@ -344,7 +343,7 @@ tvapp.controller('loginCtrl', ["$rootScope", "$scope", "$http", "$cookies", "$lo
             $location.path(ROUTES.ADMIN_ROOT);
         });
 
-    $scope.login = function() {
+    $scope.login = function login() {
         $http.post(SERVICES.LOGIN, {
                 username: $scope.username,
                 password: $scope.password

@@ -13,7 +13,7 @@ tvapp.controller('loginCtrl', function($rootScope, $scope, $http, $cookies, $loc
             $location.path(ROUTES.ADMIN_ROOT);
         });
 
-    $scope.login = function() {
+    $scope.login = function login() {
         $http.post(SERVICES.LOGIN, {
                 username: $scope.username,
                 password: $scope.password
