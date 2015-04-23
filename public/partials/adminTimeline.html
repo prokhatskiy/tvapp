@@ -5,8 +5,13 @@
             <div as-sortable="timelineSortOpitons" ng-model="slides.active" style="min-height: 100px;">
                 <div ng-repeat="slide in slides.active" as-sortable-item>
                     <div class="panel panel-info" as-sortable-item-handle>
-                        <div class="panel-heading">title: {{slide.title || slide.name}} | type: {{slide.slideType}} | <a
-                                href="#{{ROUTES.ADMIN_EDIT}}/{{slide._id}}">Edit</a></div>
+                        <div class="panel-heading">
+                            title: {{slide.title || slide.name}} | type: {{slide.slideType}} |
+                            <a href="#{{ROUTES.ADMIN_EDIT}}/{{slide._id}}">Edit</a>
+                            <div style="float: right;" ng-hide="slide.slideType == 'Video'">
+                                Duration: <input type="text" ng-model="slide.duration" style="width:60px;"/> sec
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

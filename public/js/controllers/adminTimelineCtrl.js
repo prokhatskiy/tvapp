@@ -8,7 +8,8 @@ tvapp.controller('adminTimelineCtrl', function($rootScope, $scope, $http, $locat
         noActive: []
     };
 
-    $scope.isChanged = false;
+    //fixit
+    $scope.isChanged = true;
 
     $scope.timelineSortOpitons = {
         itemMoved: function () {
@@ -64,6 +65,7 @@ tvapp.controller('adminTimelineCtrl', function($rootScope, $scope, $http, $locat
             if(slideData.length > 0) {
                 slide.timelineOrder = _.indexOf(activeSlides, slideData[0]);
                 slide.isActive = true;
+                slide.duration = Number(activeSlides[slide.timelineOrder].duration);
             }
             else {
                 slide.generalOrder = _.indexOf(noActiveSlides, noActiveSlideData[0]);

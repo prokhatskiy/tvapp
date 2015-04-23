@@ -14,8 +14,7 @@ tvapp
            LOGIN_ROOT: '/login',
            ADMIN_EDIT: '/edit',
            ADMIN_ADD: '/add',
-           ADMIN_TIMELINES: '/timeline',
-           ADMIN_IMAGES: '/images'
+           ADMIN_TIMELINES: '/timeline'
        }
     }()))
     .constant('SERVICES', (function() {
@@ -45,7 +44,6 @@ tvapp
             .when(ROUTES.ADMIN_EDIT + '/:id', {templateUrl: partialsPath + 'adminSlideEdit.html', controller: 'adminEditCtrl'})
             .when(ROUTES.ADMIN_ADD, {templateUrl: partialsPath + 'adminSlideEdit.html', controller: 'adminEditCtrl'})
             .when(ROUTES.ADMIN_TIMELINES, {templateUrl: partialsPath + 'adminTimeline.html', controller: 'adminTimelineCtrl'})
-            .when(ROUTES.ADMIN_IMAGES, {templateUrl: partialsPath + 'adminImages.html', controller: 'adminImagesCtrl'})
             .otherwise({redirectTo: ROUTES.ADMIN_ROOT});
     }]);
 'use strict';
@@ -218,7 +216,8 @@ tvapp.controller('adminTimelineCtrl', ["$rootScope", "$scope", "$http", "$locati
         noActive: []
     };
 
-    $scope.isChanged = false;
+    //fixit
+    $scope.isChanged = true;
 
     $scope.timelineSortOpitons = {
         itemMoved: function () {
@@ -274,6 +273,7 @@ tvapp.controller('adminTimelineCtrl', ["$rootScope", "$scope", "$http", "$locati
             if(slideData.length > 0) {
                 slide.timelineOrder = _.indexOf(activeSlides, slideData[0]);
                 slide.isActive = true;
+                slide.duration = Number(activeSlides[slide.timelineOrder].duration);
             }
             else {
                 slide.generalOrder = _.indexOf(noActiveSlides, noActiveSlideData[0]);

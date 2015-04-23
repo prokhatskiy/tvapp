@@ -4,7 +4,7 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var crypto = require('crypto');
 
-var connection = mongoose.connect('mongodb://prokhatskyi:dfghjkuhsaxsanxas12312@ds053160.mongolab.com:53160/tvapp');
+var connection = mongoose.connect('mongodb://localhost:27017/tvapp');
 
 var user = {
     name: 'admin',
@@ -42,6 +42,7 @@ var slideShema = new Schema({
     dateRangeStart: Date,
     dateRangeEnd: Date,
     videoURL: String,
+    duration: {type: Number, default: 10},
     employees: [{
         name: String,
         date: Date

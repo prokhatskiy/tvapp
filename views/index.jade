@@ -21,12 +21,11 @@ block content
                         a(href="#{{ROUTES.ADMIN_ADD}}") Add Slide
                     li(ng-hide="isLoginPage")
                         a(href="#{{ROUTES.ADMIN_TIMELINES}}") Edit Timeline
-                    li(ng-hide="isLoginPage")
-                        a(href="#{{ROUTES.ADMIN_IMAGES}}") Manage Images
-                    li(ng-hide="isLoginPage")
-                        a(href="#{{ROUTES.LOGIN_ROOT}}") Log Out
                     li
                         a(href="{{APP_CONST.SLIDESHOW_URL}}") Run Slideshow
+                ul.nav.navbar-nav(style="float:right;")
+                    li(ng-hide="isLoginPage")
+                        a(href="#{{ROUTES.LOGIN_ROOT}}") Log Out
     div(ng-view)
     script(src="/js/components.js")
     script(src="/js/app.js")
