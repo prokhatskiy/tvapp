@@ -1,114 +1,25 @@
 <div class="container">
     <form class="form-horizontal" role="form" ng-submit="save()">
-        <div class="row" ng-show="(currentData.slideType == 'Welcome') || (currentData.slideType == 'Success')">
-            <div class="col-sm-2"></div>
-            <div ng-show="currentData.imageSrc" class="col-sm-10" style="margin-bottom: 30px; text-align: center;">
-                <img src="{{currentData.imageSrc}}" alt="{{currentData.name}}" class="img-thumbnail" style="height: 100px;">
-            </div>
-            <div ng-hide="currentData.imageSrc" class="col-sm-10" style="margin-bottom: 30px; text-align: center;">
-                <span class="img-thumbnail" style="display: inline-block; height: 100px; width: 100px; background-color: #FEFEFE;"></span>
-            </div>
-        </div>
-        <div ng-hide="(currentData.slideType == 'Welcome') || (currentData.slideType == 'Success')" style="height: 130px;"></div>
+
         <div class="form-group" ng-show="currentData.id">
             <div class="col-sm-2 control-label">ID #</div>
             <div class="col-sm-10 control-label" style="text-align: left;">
                 {{currentData._id}}
             </div>
         </div>
+
         <div class="form-group">
             <label for="type" class="col-sm-2 control-label">Type</label>
             <div class="col-sm-10">
                 <select class="form-control"
                         id="type"
                         ng-model="currentData.slideType"
-                        ng-options="v for v in currentData.slideTypes"></select>
+                        ng-options="v for v in slideTypes"></select>
             </div>
         </div>
-        <div class="form-group" ng-show="currentData.slideType == 'Video' || currentData.slideType == 'Birthdays'">
-            <label for="title" class="col-sm-2 control-label">Title</label>
-            <div class="col-sm-10">
-                <input type="text" class="form-control" id="title" ng-model="currentData.title" ng-required="currentData.slideType == 'Video' || currentData.slideType == 'Birthdays'">
-            </div>
-        </div>
-        <div class="form-group" ng-show="(currentData.slideType == 'Welcome') || (currentData.slideType == 'Success')">
-            <label for="name" class="col-sm-2 control-label">Name</label>
-            <div class="col-sm-10">
-                <input type="text" class="form-control" id="name" ng-model="currentData.name" ng-required="(currentData.slideType == 'Welcome') || (currentData.slideType == 'Success')">
-            </div>
-        </div>
-        <div class="form-group" ng-show="(currentData.slideType == 'Welcome') || (currentData.slideType == 'Success')">
-            <label for="position" class="col-sm-2 control-label">Position</label>
-            <div class="col-sm-10">
-                <input type="text" class="form-control" id="position" ng-model="currentData.position" ng-required="(currentData.slideType == 'Welcome') || (currentData.slideType == 'Success')">
-            </div>
-        </div>
-        <div class="form-group" ng-show="(currentData.slideType == 'Welcome') || (currentData.slideType == 'Success')">
-            <label for="unit" class="col-sm-2 control-label">Department</label>
-            <div class="col-sm-10">
-                <input type="text" class="form-control" id="unit" ng-model="currentData.department" ng-required="(currentData.slideType == 'Welcome') || (currentData.slideType == 'Success')">
-            </div>
-        </div>
-        <div class="form-group" ng-show="currentData.slideType == 'Welcome'">
-            <label for="unit" class="col-sm-2 control-label">Start Date</label>
-            <div class="col-sm-10">
-                <input type="text" class="form-control" id="unit" ng-model="currentData.startDate" ui-date ng-required="currentData.slideType == 'Welcome'">
-            </div>
-        </div>
-        <div class="form-group" ng-show="currentData.slideType">
-            <label for="description" class="col-sm-2 control-label">Description</label>
-            <div class="col-sm-10">
-                <textarea class="form-control" rows="2" id="description" ng-model="currentData.description"></textarea>
-            </div>
-        </div>
-        <div class="form-group" ng-show="currentData.slideType == 'Video'">
-            <label for="videoUrl" class="col-sm-2 control-label">YouTube URL</label>
-            <div class="col-sm-10">
-                <input type="text" class="form-control" id="videoUrl" ng-model="currentData.videoURL" ng-required="currentData.slideType == 'Video'">
-            </div>
-        </div>
-        <div class="form-group" ng-show="currentData.slideType == 'Birthdays'">
-            <label for="dateRangeStart"  class="col-sm-2 control-label">Date Range</label>
-            <div class="col-sm-3" style="text-align: center;">
-                <input type="text" class="form-control" id="dateRangeStart" ng-model="currentData.dateRangeStart" placeholder="Start Date" ui-date ng-required="currentData.slideType == 'Birthdays'">
-            </div>
-            <div class="col-sm-3" style="text-align: center;">
-                <input type="text" class="form-control" id="dateRangeEnd" ng-model="currentData.dateRangeEnd" placeholder="End Date" ui-date ng-required="currentData.slideType == 'Birthdays'">
-            </div>
-        </div>
-        <div class="form-group" ng-show="currentData.slideType == 'Birthdays'" ng-repeat="item in currentData.employees track by $index">
-            <label for="employee-name-{{$index}}" class="col-sm-2 control-label">Employee #{{$index+1}}</label>
-            <div class="col-sm-7">
-                <input type="text" class="form-control" id="employee-name-{{$index}}" ng-model="currentData.employees[$index].name" placeholder="Name" ng-required="currentData.slideType == 'Birthdays'">
-            </div>
-            <div class="col-sm-3">
-                <input type="text" class="form-control" id="employee-date-{{$index}}" ng-model="currentData.employees[$index].date" placeholder="Birthday Date" ui-date ng-required="currentData.slideType == 'Birthdays'">
-            </div>
-        </div>
-        <div class="form-group" ng-show="currentData.slideType == 'Birthdays' && currentData.employees.length == 0">
-            <label for="employee-name-0" class="col-sm-2 control-label">Employee #1</label>
-            <div class="col-sm-7">
-                <input type="text" class="form-control" id="employee-name-0" ng-model="currentData.employees[0].name" placeholder="Name" ng-required="currentData.slideType == 'Birthdays'">
-            </div>
-            <div class="col-sm-3">
-                <input type="text" class="form-control" id="employee-date-0" ng-model="currentData.employees[0  ].date" placeholder="Birthday Date" ui-date ng-required="currentData.slideType == 'Birthdays'">
-            </div>
-        </div>
-        <div class="form-group" ng-show="currentData.slideType == 'Birthdays'">
-            <div  class="col-sm-2 control-label"></div>
-            <div class="col-sm-10" style="text-align: center;">
-                <button type="button" class="btn btn-default" ng-click="addEmployee()">Add Employee</button>
-            </div>
-        </div>
-        <div class="form-group" ng-show="(currentData.slideType == 'Welcome') || (currentData.slideType == 'Success')">
-            <label for="photoFile" class="col-sm-2 control-label">Change Photo</label>
-            <div class="col-sm-9" style="text-align: center;">
-                <input type="file" class="form-control" id="photoFile" ng-model="imageSrc">
-            </div>
-            <div class="col-sm-1" style="text-align: center;">
-                <button type="button" class="btn btn-default" ng-click="uploadPhoto()">Upload</button>
-            </div>
-        </div>
+
+        <div ng-include="templates[currentData.slideType]"></div>
+
         <div class="form-group">
             <div class="col-sm-offset-2 col-sm-10">
                 <button type="submit" class="btn btn-success">Save</button>
@@ -116,11 +27,7 @@
                 <button type="button" class="btn btn-danger" ng-show="isNewItem" ng-click="revert()" ng-disabled="!isChanged">Clear</button>
             </div>
         </div>
-        <div class="row" ng-show="showMessage">
-            <div class="panel panel-success"><div class="panel-heading">{{showMessage}}</div></div>
-        </div>
-        <div class="row" ng-show="showError">
-            <div class="panel panel-danger"><div class="panel-heading">{{showError}}</div></div>
-        </div>
+
+        <div ng-inlude="/templates/global/messages.html"></div>
     </form>
 </div>

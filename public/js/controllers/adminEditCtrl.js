@@ -1,14 +1,25 @@
 'use strict';
 
 tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES, $timeout, $location, ROUTES) {
-    //config
-    var defaults = {
-        slideType: 'Welcome',
-        slideTypes: ['Welcome', 'Success', 'Birthdays', 'Video'],
-        employees: [{'name' : '', date: ''}]
+    var defaults,
+        slideData,
+        employeesTemplate = {'name' : '', date: ''};
+
+    $scope.templates = {
+        'Welcome': '/templates/slideEditor/welcome.html',
+        'Success': '/templates/slideEditor/success.html',
+        'Birthdays': '/templates/slideEditor/birthdays.html',
+        'Video': '/templates/slideEditor/video.html'
     };
 
-    var slideData = angular.copy(defaults);
+    $scope.slideTypes = _.keys($scope.templates);
+
+    defaults = {
+        slideType: $scope.slideTypes[0],
+        employees: [employeesTemplate]
+    };
+
+    slideData = angular.copy(defaults);
     $scope.currentData = angular.copy(defaults);
     $scope.isNewItem = true;
     $scope.isChanged = false;
@@ -21,7 +32,7 @@ tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES
     });
 
     //extend model
-    if($routeParams.id) {
+    if ($routeParams.id) {
         $http.get(SERVICES.GET_SLIDE + '/' + $routeParams.id)
             .success(function(data) {
                 slideData = angular.extend(slideData, data);
@@ -37,8 +48,7 @@ tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES
                         showError('Slide cannot be loaded.' + 'Status code: ' + status);
                 }
             });
-    }
-    else {
+    } else {
         $http.get(SERVICES.CHECK_ACCESS)
             .error(function(data, status) {
                 switch (status) {
@@ -77,7 +87,7 @@ tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES
     };
 
     $scope.addEmployee = function addEmployee() {
-        $scope.currentData.employees.push({name : '', date: ''});
+        $scope.currentData.employees.push(employeesTemplate);
     };
 
     var showMessage = function showMessage(message) {
