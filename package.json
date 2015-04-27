@@ -16,8 +16,10 @@
   },
   "devDependencies": {
     "crypto": "0.0.3",
+    "fs": "0.0.2",
     "gulp-express": "^0.1.1",
     "gulp-shell": "^0.2.10",
-    "mongoose": "^3.8.19"
+    "mongoose": "^3.8.19",
+    "multer": "^0.1.8"
   }
 }

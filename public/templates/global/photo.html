@@ -1,9 +1,9 @@
-<div ng-show="currentData.imageSrc" ng-click="removeImage()">
-    <img ng-src="{{currentData.imageSrc}}" alt="{{currentData.name}}"/>
+<div ng-click="removeImage()" ng-show="src">
+    <img ng-src="{{src}}" ng-click="deleteImage(src)"/>
 </div>
-<div ng-hide="currentData.imageSrc" class="form-group">
-    <label for="type" class="col-sm-2 control-label" for="image">Image</label>
+<div class="form-group" ng-hide="src">
+    <label class="col-sm-2 control-label" for="image">Image</label>
     <div class="col-sm-6 control-label">
-        <input type="file" name="image" id="image" accept="image/jpeg" ng-model="imageSrc"/>
+        <input type="file" name="image" id="image" accept="image/jpeg"/>
     </div>
 </div>

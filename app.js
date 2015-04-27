@@ -10,6 +10,18 @@ var users = require('./routes/users');
 
 var app = express();
 
+var multer  = require('multer');
+
+app.use(multer({
+    dest: './public/uploads/',
+    rename: function (fieldname, filename) {
+        return filename.replace(/\W+/g, '-').toLowerCase() + Date.now()
+    },
+    onFileUploadComplete: function(file, req, res) {
+        res.status(202).send('/uploads/' + file.name);
+    }
+}));
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');

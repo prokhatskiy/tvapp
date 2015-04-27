@@ -3,6 +3,7 @@ var router = express.Router();
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var crypto = require('crypto');
+var fs = require('fs');
 
 var connection = mongoose.connect('mongodb://localhost:27017/tvapp');
 
@@ -23,7 +24,8 @@ var DEFAULTS = {
         POST_SLIDES: 'slides',
         LOGIN: 'login',
         LOGOUT: 'logout',
-        CHECK_ACCESS: 'access'
+        CHECK_ACCESS: 'access',
+        IMAGE: 'image'
     }
 };
 
@@ -188,6 +190,15 @@ router.post('/' + DEFAULTS.SERVICES.ROOT + '/' + DEFAULTS.SERVICES.LOGOUT, funct
 
         res.status(202).send('OK');
     });
+});
+
+router.delete('/' + DEFAULTS.SERVICES.ROOT + '/' + DEFAULTS.SERVICES.IMAGE, function (req, res) {
+    fs.unlink('./public/' +  req.query.src, function (err) {
+        if (err) return res.status(400).send(err);
+
+        res.status(202).send('ok');
+    });
+
 });
 
 module.exports = router;

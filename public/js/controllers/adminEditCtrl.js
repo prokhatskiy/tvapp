@@ -23,10 +23,12 @@ tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES
     $scope.currentData = angular.copy(defaults);
     $scope.isNewItem = true;
     $scope.isChanged = false;
-    $scope.imageSrc = '';
+
+    console.log($scope);
 
     $scope.$watchCollection('currentData', function() {
         $scope.isChanged = !angular.equals($scope.currentData, slideData);
+        console.log($scope);
     });
 
     //extend model

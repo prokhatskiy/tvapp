@@ -28,7 +28,8 @@ tvapp
             GET_SLIDE: '/services/slide',
             POST_SLIDE: '/services/slide',
             DELETE_SLIDE: '/services/slide',
-            UPLOAD_IMG: '/fakeData/src.json'
+            UPLOAD_IMG: '/services/image',
+            DELETE_IMG: '/services/image'
         }
     }()))
     .run(function($rootScope, APP_CONST, ROUTES) {
