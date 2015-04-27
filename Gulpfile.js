@@ -46,8 +46,7 @@ var config = {
     }
 };
 
-// Javascript concatination
-
+// Javascript concat
 gulp.task('js:components', function() {
     //concat components
     return gulp.src(config.components)

@@ -116,10 +116,6 @@ tvapp.controller('adminEditCtrl', ["$scope", "$routeParams", "$http", "SERVICES"
             });
     }
 
-    $scope.uploadPhoto = function uploadPhoto() {
-        console.log($scope.imageSrc);
-    };
-
     $scope.save = function save() {
         $http.post(SERVICES.POST_SLIDE, $scope.currentData)
             .success(function() {
@@ -362,6 +358,10 @@ tvapp.controller('loginCtrl', ["$rootScope", "$scope", "$http", "$cookies", "$lo
 }]);
 tvapp.directive('uiMessages', ["$timeout", function($timeout) {
     return {
+        restrict: 'E',
+        scope: {
+            message: '=message'
+        },
         templateUrl: '/templates/global/messages.html',
         link: function(scope) {
             scope.$watch('message', function() {
@@ -380,3 +380,14 @@ tvapp.directive('uiMessages', ["$timeout", function($timeout) {
         }
     };
 }]);
+tvapp.directive('uiPhoto', function() {
+    return {
+        restrict: 'E',
+        scope: {
+            src : '=src'
+        },
+        templateUrl: '/templates/global/photo.html',
+        controller: ["$scope", function($scope) {
+        }]
+    }
+});

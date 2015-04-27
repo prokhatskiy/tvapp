@@ -67,10 +67,6 @@ tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES
             });
     }
 
-    $scope.uploadPhoto = function uploadPhoto() {
-        console.log($scope.imageSrc);
-    };
-
     $scope.save = function save() {
         $http.post(SERVICES.POST_SLIDE, $scope.currentData)
             .success(function() {

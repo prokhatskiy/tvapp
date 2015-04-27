@@ -1,5 +1,9 @@
 tvapp.directive('uiMessages', function($timeout) {
     return {
+        restrict: 'E',
+        scope: {
+            message: '=message'
+        },
         templateUrl: '/templates/global/messages.html',
         link: function(scope) {
             scope.$watch('message', function() {
