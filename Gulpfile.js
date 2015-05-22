@@ -64,17 +64,9 @@ gulp.task('js:app', function() {
 
 //Stylus building
 gulp.task('stylus', function() {
-    var common = gulp.src('styl/common.styl')
-            .pipe(stylus(config.stylusOptions))
-            .pipe(autoprefixer(config.autoprefixerOptions));
-
-    var blocks = gulp.src('styl/blocks.styl')
+    return gulp.src('public/styl/styles.styl')
         .pipe(stylus(config.stylusOptions))
-        .pipe(autoprefixer(config.autoprefixerOptions));
-
-    return es.concat(common, blocks)
-        .pipe(order(['common', 'blocks']))
-        .pipe(concat(config.cssFileName))
+        .pipe(autoprefixer(config.autoprefixerOptions))
         .pipe(gulp.dest(config.cssDist))
 });
 
@@ -83,11 +75,8 @@ gulp.task('server', function () {
     server.run({
         file: './bin/www'
     });
-
-    // Restart the server when file changes
-    //gulp.watch(['app/**/*.html'], server.notify);
-    //gulp.watch(['app.js', 'routes/**/*.js', 'views/**/*.js'], [server.run]);
 });
+
 
 //watcher
 gulp.task('watch', function() {
