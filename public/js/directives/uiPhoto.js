@@ -7,6 +7,7 @@ tvapp.directive('uiPhoto', function(SERVICES, $http) {
         templateUrl: '/templates/global/photo.html',
         controller: function($scope, $element) {
             var inputValue = '';
+            var $input = $element.find('input[type=file]');
             $scope.loading = 0;
 
             var uploadImage = function uploadImage(files) {
@@ -37,7 +38,7 @@ tvapp.directive('uiPhoto', function(SERVICES, $http) {
                     });
             };
 
-            $element.find('input[type=file]').on('change', function(event) {
+            $input.on('change', function(event) {
                 var $el = $(this);
                 var val = $el.val();
 
@@ -56,7 +57,7 @@ tvapp.directive('uiPhoto', function(SERVICES, $http) {
                         console.log($scope.src);
                         $scope.loading -= 1;
                         $scope.src = '';
-                        console.log($scope.src);x
+                        $input.val('');
                         $scope.$broadcast('uiPhoto:deleted');
                     })
                     .error(function(data, status) {
