@@ -1,22 +1,21 @@
-<table class="table">
+<table class="slides-table">
     <tr>
-        <th>Title</th>
-        <th>Type</th>
-        <th>Active</th>
-        <th></th>
+        <th class="slides-table__title">Title</th>
+        <th class="slides-table__type">Type</th>
+        <th class="slides-table__active">Active</th>
     </tr>
-    <tr ng-repeat="slide in slides | filter: filterString | orderBy: slide.generalOrder">
-        <td>
+    <tr ng-repeat="slide in slides | filter: filterString | orderBy: slide.generalOrder" class="{{ (slide.isActive) ? 'slides-table_active' : '' }}">
+        <td class="slides-table__title">
             <a href="#{{ROUTES.ADMIN_EDIT}}/{{slide._id}}">{{slide.title || slide.name}}</a>
         </td>
-        <td>
+        <td class="slides-table__type">
             {{slide.slideType}}
         </td>
-        <td>
+        <td class="slides-table__active">
             {{slide.isActive}}
         </td>
-        <td>
-            <button ng-click="deleteSlide(slide._id)" style="float: right;" class="btn btn-danger">Delete Slide</button>
+        <td class="slides-table__delete">
+            <button ng-click="deleteSlide(slide._id)" class="btn btn_delete slides-table__delete">Delete Slide</button>
         </td>
     </tr>
 </table>
