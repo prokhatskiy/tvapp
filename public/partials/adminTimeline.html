@@ -1,38 +1,41 @@
-<div class="container" id="board">
-    <div class="row">
-        <div class="col-sm-6">
-            <h3>Timeline:</h3>
-            <div as-sortable="timelineSortOpitons" ng-model="slides.active" style="min-height: 100px;">
-                <div ng-repeat="slide in slides.active" as-sortable-item>
-                    <div class="panel panel-info" as-sortable-item-handle>
-                        <div class="panel-heading">
-                            title: {{slide.title || slide.name}} | type: {{slide.slideType}} |
-                            <a href="#{{ROUTES.ADMIN_EDIT}}/{{slide._id}}">Edit</a>
-                            <div style="float: right;" ng-hide="slide.slideType == 'Video'">
-                                Duration: <input type="text" ng-model="slide.duration" style="width:60px;"/> sec
-                            </div>
-                        </div>
-                    </div>
+<section class="timeline">
+    <header class="timeline__head">
+        <h3 class="timeline__title">
+            Timeline
+        </h3>
+        <h3 class="timeline__title">
+            Slides
+        </h3>
+    </header>
+    <div class="timeline__col" as-sortable="timelineSortOpitons" ng-model="slides.active">
+        <article ng-repeat="slide in slides.active" as-sortable-item class="timeline__item timeline__item_active">
+            <div class="timeline__handler" as-sortable-item-handle>
+                <img src="{{slide.imageSrc || 'http://placehold.it/300x300&text=placeholder'}}" alt="{{slide.title}}" class="timeline__photo">
+
+                <a href="#{{ROUTES.ADMIN_EDIT}}/{{slide._id}}">{{slide.title || slide.name}}</a>
+                type: {{slide.slideType}}
+
+                <div ng-hide="slide.slideType == 'Video'" class="timeline__duration">
+                    Duration: <input type="text" ng-model="slide.duration" class="input input__duration"/> <small>sec</small>
                 </div>
             </div>
-        </div>
-        <div class="col-sm-6">
-            <h3>Slides:</h3>
-            <div as-sortable="timelineSortOpitons"  ng-model="slides.noActive" style="min-height: 100px;">
-                <div ng-repeat="slide in slides.noActive" as-sortable-item>
-                    <div class="panel panel-default" as-sortable-item-handle>
-                        <div class="panel-heading"> title: {{slide.title || slide.name}} | type: {{slide.slideType}} | <a
-                                href="#{{ROUTES.ADMIN_EDIT}}/{{slide._id}}">Edit</a></div>
-                    </div>
-                </div>
+        </article>
+    </div>
+    <div class="timeline__col" as-sortable="timelineSortOpitons"  ng-model="slides.noActive">
+        <article ng-repeat="slide in slides.noActive" as-sortable-item class="timeline__item timeline__item_no-active">
+            <div class="timeline__handler" as-sortable-item-handle>
+                <img src="{{slide.imageSrc || 'http://placehold.it/300x300&text=placeholder'}}" alt="{{slide.title}}" class="timeline__photo">
+
+                <a href="#{{ROUTES.ADMIN_EDIT}}/{{slide._id}}">{{slide.title || slide.name}}</a>
+                type: {{slide.slideType}}
             </div>
-        </div>
+        </article>
     </div>
 
-    <div class="row" style="margin-bottom: 30px;">
-        <button type="submit" class="btn btn-success" ng-click="save()" ng-disabled="!isChanged">Save</button>
-        <button type="button" class="btn btn-danger" ng-click="revert()" ng-disabled="!isChanged">Revert</button>
-    </div>
+    <footer class="timeline__footer">
+        <button type="submit" class="btn btn_save" ng-click="save()" ng-disabled="!isChanged">Save</button>
+        <button type="button" class="btn btn_revert" ng-click="revert()" ng-disabled="!isChanged">Revert</button>
 
-    <ui-messages message="message"></ui-messages>
-</div>
+        <ui-messages message="message"></ui-messages>
+    </footer>
+</section>
