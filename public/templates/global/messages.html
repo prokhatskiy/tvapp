@@ -1,7 +1,7 @@
-<div class="row" ng-show="(message.type === 'message') && message.show">
-    <div class="panel panel-success"><div class="panel-heading">{{message.text}}</div></div>
+<div class="message message_notificaton" ng-show="(message.type === 'message') && message.show">
+    {{message.text}}
 </div>
 
-<div class="row" ng-show="(message.type === 'error') && message.show">
-    <div class="panel panel-danger"><div class="panel-heading">{{message.text}}</div></div>
+<div class="message message_error" ng-show="(message.type === 'error') && message.show">
+    {{message.text}}
 </div>

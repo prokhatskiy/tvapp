@@ -1,31 +1,22 @@
 extends layout
 
 block content
-    div.navbar.navbar-default.navbar-static-top
-        div.container
-            div.navbar-header
-                button.navbar-toggle.collapsed
-                    span.sr-only
-                        Toggle navigation
-                    span.icon-bar
-                    span.icon-bar
-                    span.icon-bar
-                span.navbar-brand
-                    EPAM TV
+    nav.nav
+        ul.nav__list
+            li.nav__item.nav__item_logo
+                a(href="#/").logo EPAM TV
+            li(ng-hide="isLoginPage").nav__item
+                a(href="#{{ROUTES.ADMIN_ROOT}}").nav__link Edit Slides
+            li(ng-hide="isLoginPage").nav__item
+                a(href="#{{ROUTES.ADMIN_ADD}}").nav__link Add Slide
+            li(ng-hide="isLoginPage").nav__item
+                a(href="#{{ROUTES.ADMIN_TIMELINES}}").nav__link Edit Timeline
+            li.nav__item
+                a(href="{{APP_CONST.SLIDESHOW_URL}}").nav__link Run Slideshow
+            li(ng-hide="isLoginPage").nav__item.nav__item_logout
+                a(href="#{{ROUTES.LOGIN_ROOT}}").nav__link Log Out
 
-            nav.collapse.navbar-collapse
-                ul.nav.navbar-nav
-                    li(ng-hide="isLoginPage")
-                        a(href="#{{ROUTES.ADMIN_ROOT}}") Edit Slides
-                    li(ng-hide="isLoginPage")
-                        a(href="#{{ROUTES.ADMIN_ADD}}") Add Slide
-                    li(ng-hide="isLoginPage")
-                        a(href="#{{ROUTES.ADMIN_TIMELINES}}") Edit Timeline
-                    li
-                        a(href="{{APP_CONST.SLIDESHOW_URL}}") Run Slideshow
-                ul.nav.navbar-nav(style="float:right;")
-                    li(ng-hide="isLoginPage")
-                        a(href="#{{ROUTES.LOGIN_ROOT}}") Log Out
-    div(ng-view)
+    div.container(ng-view)
+
     script(src="/js/components.js")
     script(src="/js/app.js")

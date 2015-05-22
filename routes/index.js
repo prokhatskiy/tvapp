@@ -86,8 +86,7 @@ router.use(function (req, res, next) {
 router.get('/', function (req, res) {
     res.render('index', {
         title: 'EPAM TV',
-        links: ['/bower_components/bootstrap/dist/css/bootstrap.css',
-            '/bower_components/jquery-ui/themes/cupertino/jquery-ui.min.css',
+        links: ['/bower_components/jquery-ui/themes/cupertino/jquery-ui.min.css',
             '/bower_components/ng-sortable/dist/ng-sortable.css',
             '/bower_components/jquery-ui/themes/cupertino/theme.css']
     });
