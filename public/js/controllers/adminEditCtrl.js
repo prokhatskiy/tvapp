@@ -24,14 +24,11 @@ tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES
     $scope.isNewItem = true;
     $scope.isChanged = false;
 
-    console.log($scope);
-
     $scope.$watchCollection('currentData', function() {
         $scope.isChanged = !angular.equals($scope.currentData, slideData);
         console.log($scope);
     });
 
-    //extend model
     if ($routeParams.id) {
         $http.get(SERVICES.GET_SLIDE + '/' + $routeParams.id)
             .success(function(data) {
@@ -72,11 +69,7 @@ tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES
     $scope.save = function save() {
         $http.post(SERVICES.POST_SLIDE, $scope.currentData)
             .success(function() {
-                $scope.message = {
-                    type: 'message',
-                    text: 'This slide is saved.',
-                    hide: 5000
-                };
+                $location.path(ROUTES.ADMIN_ROOT);
             })
             .error(function(data, status) {
                 switch (status) {
