@@ -37,7 +37,7 @@ tvapp
         $rootScope.APP_CONST = APP_CONST;
     }])
     .config(["$routeProvider", "ROUTES", function($routeProvider, ROUTES) {
-        var partialsPath = 'partials/';
+        var partialsPath = 'pages/';
 
         $routeProvider
             .when(ROUTES.LOGIN_ROOT, {templateUrl: partialsPath + 'login.html', controller: 'loginCtrl'})
@@ -76,7 +76,6 @@ tvapp.controller('adminEditCtrl', ["$scope", "$routeParams", "$http", "SERVICES"
 
     $scope.$watchCollection('currentData', function() {
         $scope.isChanged = !angular.equals($scope.currentData, slideData);
-        console.log($scope);
     });
 
     if ($routeParams.id) {
@@ -285,8 +284,7 @@ tvapp.controller('adminTimelineCtrl', ["$rootScope", "$scope", "$http", "$locati
                 slide.timelineOrder = _.indexOf(activeSlides, slideData[0]);
                 slide.isActive = true;
                 slide.duration = Number(activeSlides[slide.timelineOrder].duration);
-            }
-            else {
+            } else {
                 slide.generalOrder = _.indexOf(noActiveSlides, noActiveSlideData[0]);
                 slide.isActive = false;
             }
@@ -304,8 +302,7 @@ tvapp.controller('adminTimelineCtrl', ["$rootScope", "$scope", "$http", "$locati
         data.forEach(function(slide) {
             if(slide.isActive) {
                 $scope.slides.active.push(angular.copy(slide));
-            }
-            else {
+            } else {
                 $scope.slides.noActive.push(angular.copy(slide));
             }
         });
