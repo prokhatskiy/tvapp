@@ -26,7 +26,6 @@ tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES
 
     $scope.$watchCollection('currentData', function() {
         $scope.isChanged = !angular.equals($scope.currentData, slideData);
-        console.log($scope);
     });
 
     if ($routeParams.id) {

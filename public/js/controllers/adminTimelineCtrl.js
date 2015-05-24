@@ -77,8 +77,7 @@ tvapp.controller('adminTimelineCtrl', function($rootScope, $scope, $http, $locat
                 slide.timelineOrder = _.indexOf(activeSlides, slideData[0]);
                 slide.isActive = true;
                 slide.duration = Number(activeSlides[slide.timelineOrder].duration);
-            }
-            else {
+            } else {
                 slide.generalOrder = _.indexOf(noActiveSlides, noActiveSlideData[0]);
                 slide.isActive = false;
             }
@@ -96,8 +95,7 @@ tvapp.controller('adminTimelineCtrl', function($rootScope, $scope, $http, $locat
         data.forEach(function(slide) {
             if(slide.isActive) {
                 $scope.slides.active.push(angular.copy(slide));
-            }
-            else {
+            } else {
                 $scope.slides.noActive.push(angular.copy(slide));
             }
         });
