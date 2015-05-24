@@ -5,67 +5,25 @@ var Schema = mongoose.Schema;
 var crypto = require('crypto');
 var fs = require('fs');
 
-var connection = mongoose.connect('mongodb://localhost:27017/tvapp');
+var CONFIG = require('../config');
 
-var user = {
-    name: 'admin',
-    password: 'admin'
-};
+var connection = mongoose.connect(CONFIG.DB);
+var user = CONFIG.USER;
 
-var DEFAULTS = {
-    SERVICES: {
-        ROOT: 'services',
-        GET_SLIDE: 'slide',
-        POST_SLIDE: 'slide',
-        DELETE_SLIDE: 'slide',
-        GET_TIMELINE: 'timeline',
-        POST_TIMELINE: 'timeline',
-        GET_SLIDES: 'slides',
-        POST_SLIDES: 'slides',
-        LOGIN: 'login',
-        LOGOUT: 'logout',
-        CHECK_ACCESS: 'access',
-        IMAGE: 'image'
-    }
-};
-
-var slideShema = new Schema({
-    isActive: {type: Boolean, default: false},
-    timelineOrder: {type: Number, default: 0},
-    generalOrder: {type: Number, default: 0},
-    title: String,
-    description: String,
-    slideType: String,
-    name: String,
-    position: String,
-    department: String,
-    startDate: Date,
-    imageSrc: String,
-    dateRangeStart: Date,
-    dateRangeEnd: Date,
-    videoURL: String,
-    duration: {type: Number, default: 10},
-    employees: [{
-        name: String,
-        date: Date
-    }]
-});
-
-var tokenShema = new Schema({
-    token: String
-});
+var slideShema = new Schema(CONFIG.SCHEMAS.ITEM);
+var tokenShema = new Schema(CONFIG.SCHEMAS.TOKEN);
 
 var Slide = mongoose.model('Slide', slideShema);
 var Token = mongoose.model('Token', tokenShema);
 
 router.use(function (req, res, next) {
-    if (req.url.indexOf('/' + DEFAULTS.SERVICES.ROOT + '/') === -1) {
+    if (req.url.indexOf('/' + CONFIG.SERVICES.ROOT + '/') === -1) {
         next();
 
         return;
     }
 
-    if (req.url.indexOf('/' + DEFAULTS.SERVICES.LOGIN) !== -1 || req.url.indexOf('/' + DEFAULTS.SERVICES.LOGOUT) !== -1) {
+    if (req.url.indexOf('/' + CONFIG.SERVICES.LOGIN) !== -1 || req.url.indexOf('/' + CONFIG.SERVICES.LOGOUT) !== -1) {
         next();
 
         return;
@@ -93,21 +51,21 @@ router.get('/', function (req, res) {
     });
 });
 
-router.get('/slideshow', function (req, res) {
+router.get('/' + CONFIG.SERVICES.SLIDESHOW, function (req, res) {
     res.render('slideshow', {
         title: 'EPAM TV',
         links: []
     });
 });
 
-router.get('/' + DEFAULTS.SERVICES.ROOT + '/' + DEFAULTS.SERVICES.GET_SLIDES, function (req, res) {
+router.get('/' + CONFIG.SERVICES.ROOT + '/' + CONFIG.SERVICES.GET_SLIDES, function (req, res) {
     Slide.find({}, function (err, docs) {
         if (err) return console.log(err);
         res.send(docs);
     });
 });
 
-router.post('/' + DEFAULTS.SERVICES.ROOT + '/' + DEFAULTS.SERVICES.POST_SLIDES, function (req, res) {
+router.post('/' + CONFIG.SERVICES.ROOT + '/' + CONFIG.SERVICES.POST_SLIDES, function (req, res) {
     var slides = req.body;
 
     slides.forEach(function(slide) {
@@ -123,14 +81,14 @@ router.post('/' + DEFAULTS.SERVICES.ROOT + '/' + DEFAULTS.SERVICES.POST_SLIDES, 
     res.status(202).send('Ok');
 });
 
-router.get('/' + DEFAULTS.SERVICES.ROOT + '/' + DEFAULTS.SERVICES.GET_SLIDE + '/:id', function (req, res) {
+router.get('/' + CONFIG.SERVICES.ROOT + '/' + CONFIG.SERVICES.GET_SLIDE + '/:id', function (req, res) {
     Slide.findOne({'_id': req.params.id}, function (err, doc) {
         if (err) return console.log(err);
         res.send(doc);
     });
 });
 
-router.delete('/' + DEFAULTS.SERVICES.ROOT + '/' + DEFAULTS.SERVICES.DELETE_SLIDE + '/:id', function (req, res) {
+router.delete('/' + CONFIG.SERVICES.ROOT + '/' + CONFIG.SERVICES.DELETE_SLIDE + '/:id', function (req, res) {
     Slide.findOne({'_id': req.params.id}, function (err, doc) {
         if (err) return console.log(err);
         doc.remove();
@@ -138,11 +96,11 @@ router.delete('/' + DEFAULTS.SERVICES.ROOT + '/' + DEFAULTS.SERVICES.DELETE_SLID
     });
 });
 
-router.get('/' + DEFAULTS.SERVICES.ROOT + '/' + DEFAULTS.SERVICES.CHECK_ACCESS, function (req, res) {
+router.get('/' + CONFIG.SERVICES.ROOT + '/' + CONFIG.SERVICES.CHECK_ACCESS, function (req, res) {
     res.send('OK');
 });
 
-router.post('/' + DEFAULTS.SERVICES.ROOT + '/' + DEFAULTS.SERVICES.POST_SLIDE, function (req, res) {
+router.post('/' + CONFIG.SERVICES.ROOT + '/' + CONFIG.SERVICES.POST_SLIDE, function (req, res) {
     var slide = new Slide(req.body);
 
     if (req.body._id) {
@@ -162,7 +120,7 @@ router.post('/' + DEFAULTS.SERVICES.ROOT + '/' + DEFAULTS.SERVICES.POST_SLIDE, f
     }
 });
 
-router.post('/' + DEFAULTS.SERVICES.ROOT + '/' + DEFAULTS.SERVICES.LOGIN, function (req, res) {
+router.post('/' + CONFIG.SERVICES.ROOT + '/' + CONFIG.SERVICES.LOGIN, function (req, res) {
     if (req.body.username === user.name && req.body.password === user.password) {
         var now = new Date().getTime();
         var md5 = crypto.createHash('md5');
@@ -182,7 +140,7 @@ router.post('/' + DEFAULTS.SERVICES.ROOT + '/' + DEFAULTS.SERVICES.LOGIN, functi
     }
 });
 
-router.post('/' + DEFAULTS.SERVICES.ROOT + '/' + DEFAULTS.SERVICES.LOGOUT, function (req, res) {
+router.post('/' + CONFIG.SERVICES.ROOT + '/' + CONFIG.SERVICES.LOGOUT, function (req, res) {
     res.clearCookie('token');
 
     Token.update({}, {token: ''}, {upsert: true}, function (err, numberAffected, raw) {
@@ -192,13 +150,12 @@ router.post('/' + DEFAULTS.SERVICES.ROOT + '/' + DEFAULTS.SERVICES.LOGOUT, funct
     });
 });
 
-router.delete('/' + DEFAULTS.SERVICES.ROOT + '/' + DEFAULTS.SERVICES.IMAGE, function (req, res) {
+router.delete('/' + CONFIG.SERVICES.ROOT + '/' + CONFIG.SERVICES.IMAGE, function (req, res) {
     fs.unlink('./public/' +  req.query.src, function (err) {
         if (err) return res.status(400).send(err);
 
         res.status(202).send('ok');
     });
-
 });
 
 module.exports = router;
