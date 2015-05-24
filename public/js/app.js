@@ -37,7 +37,7 @@ tvapp
         $rootScope.APP_CONST = APP_CONST;
     }])
     .config(["$routeProvider", "ROUTES", function($routeProvider, ROUTES) {
-        var partialsPath = 'pages/';
+        var partialsPath = '/pages/';
 
         $routeProvider
             .when(ROUTES.LOGIN_ROOT, {templateUrl: partialsPath + 'login.html', controller: 'loginCtrl'})
