@@ -1,22 +1,23 @@
 extends layout
 
 block content
-    nav.nav
-        ul.nav__list
-            li.nav__item.nav__item_logo
-                a(href="#/").logo EPAM TV
-            li(ng-hide="isLoginPage").nav__item
-                a(href="#{{ROUTES.ADMIN_ROOT}}").nav__link Edit Slides
-            li(ng-hide="isLoginPage").nav__item
-                a(href="#{{ROUTES.ADMIN_ADD}}").nav__link Add Slide
-            li(ng-hide="isLoginPage").nav__item
-                a(href="#{{ROUTES.ADMIN_TIMELINES}}").nav__link Edit Timeline
-            li.nav__item
-                a(href="{{APP_CONST.SLIDESHOW_URL}}").nav__link Run Slideshow
-            li(ng-hide="isLoginPage").nav__item.nav__item_logout
-                a(href="#{{ROUTES.LOGIN_ROOT}}").nav__link Log Out
+    div.l-wrapper
+        nav.nav
+            ul.nav__list
+                li.nav__item.nav__item_logo
+                    a(href="#/").logo EPAM TV
+                li(ng-hide="isLoginPage").nav__item
+                    a(href="#{{ROUTES.ADMIN_ROOT}}").nav__link Edit Slides
+                li(ng-hide="isLoginPage").nav__item
+                    a(href="#{{ROUTES.ADMIN_ADD}}").nav__link Add Slide
+                li(ng-hide="isLoginPage").nav__item
+                    a(href="#{{ROUTES.ADMIN_TIMELINES}}").nav__link Edit Timeline
+                li.nav__item
+                    a(href="{{APP_CONST.SLIDESHOW_URL}}").nav__link Run Slideshow
+                li(ng-hide="isLoginPage").nav__item.nav__item_logout
+                    a(href="#{{ROUTES.LOGIN_ROOT}}").nav__link Log Out
 
-    div.container(ng-view)
+        div.container(ng-view)
 
     script(src="/js/components.js")
     script(src="/js/app.js")

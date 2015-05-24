@@ -7,11 +7,12 @@
             Slides
         </h3>
     </header>
-    <div class="timeline__col" as-sortable="timelineSortOpitons" ng-model="slides.active">
+    <div class="timeline__col timeline__col_active" as-sortable="timelineSortOpitons" ng-model="slides.active">
         <article ng-repeat="slide in slides.active" as-sortable-item class="timeline__item timeline__item_active">
             <div class="timeline__handler" as-sortable-item-handle>
                 <img src="{{slide.imageSrc || 'http://placehold.it/300x300&text=placeholder'}}" alt="{{slide.title}}" class="timeline__photo">
 
+                <small># {{$index + 1}}</small><br/>
                 <a href="#{{ROUTES.ADMIN_EDIT}}/{{slide._id}}">{{slide.title || slide.name}}</a>
                 type: {{slide.slideType}}
 
@@ -21,10 +22,10 @@
             </div>
         </article>
     </div>
-    <div class="timeline__col" as-sortable="timelineSortOpitons"  ng-model="slides.noActive">
+    <div class="timeline__col timeline__col_no-active" as-sortable="timelineSortOpitons"  ng-model="slides.noActive">
         <article ng-repeat="slide in slides.noActive" as-sortable-item class="timeline__item timeline__item_no-active">
             <div class="timeline__handler" as-sortable-item-handle>
-                <img src="{{slide.imageSrc || 'http://placehold.it/300x300&text=placeholder'}}" alt="{{slide.title}}" class="timeline__photo">
+                <img src="{{slide.imageSrc}}" alt="{{slide.title}}" class="timeline__photo">
 
                 <a href="#{{ROUTES.ADMIN_EDIT}}/{{slide._id}}">{{slide.title || slide.name}}</a>
                 type: {{slide.slideType}}
@@ -34,7 +35,6 @@
 
     <footer class="timeline__footer">
         <button type="submit" class="btn btn_save" ng-click="save()" ng-disabled="!isChanged">Save</button>
-        <button type="button" class="btn btn_revert" ng-click="revert()" ng-disabled="!isChanged">Revert</button>
 
         <ui-messages message="message"></ui-messages>
     </footer>

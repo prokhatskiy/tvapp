@@ -1,9 +1,8 @@
 <section class="slide">
     <form role="form" ng-submit="save()">
 
-        <header class="form__head">
-            <ui-photo src="currentData.imageSrc"
-                      ng-show="(currentData.slideType === 'Welcome') || (currentData.slideType === 'Success')"></ui-photo>
+        <header class="slide__head">
+            <ui-photo src="currentData.imageSrc"></ui-photo>
 
             <div class="slide__id" ng-show="currentData._id">
                 ID: {{currentData._id}}

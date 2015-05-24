@@ -1,0 +1,93 @@
+.input
+    box-sizing: border-box
+    height: 35px
+    line-height: @height
+    padding: 0 10px
+    width: 100%
+    outline: 0
+    border: 1px solid color-border
+
+    &:focus,
+    &:hover
+        box-shadow: 0 0 10px color-shadow
+
+    &_textarea
+        height: 35px
+        transition: height .3s
+
+        &:focus
+            height: 100px
+
+
+.label
+    height: 35px
+    line-height: @height
+
+
+.form-group
+    overflow: hidden
+    padding: 5px
+    
+    &:nth-child(2n)
+        background: color-lightGrey
+
+        .login &
+            background: none
+    
+    &__label
+        float: left
+        width: 15%
+
+        .login &
+            width: 30%
+        
+    &__field
+        width: 85%
+        float: right
+
+        .login &
+            width: 70%
+        
+        &_half
+            width: 42%
+            float: left
+    
+            &:last-child
+                margin-left: 1%
+        
+.btn
+    left: 30px
+    background-color: color-button
+    border: 0
+    height: 35px
+    line-height: @height
+    padding: 0 15px
+    color: #fff
+    cursor: pointer
+    outline: 0
+    
+    &:disabled
+        opacity: .7
+
+    &_clear
+        background: color-danger
+
+    &_add,
+    &_login
+        width: 160px
+        display: block
+        margin: 0 auto
+
+    &_login
+        width: 100px
+        margin-top: 20px
+
+    &_switch
+        background-color: #fff
+        border: 1px solid  color-border
+        color: color-text
+
+    &_active
+        background-color: color-button
+        cursor: default
+        color: #fff

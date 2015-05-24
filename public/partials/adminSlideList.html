@@ -5,7 +5,7 @@
                     ng-repeat="template in templates"
                     ng-click="setTemplate(template)">{{template.name}}</button>
         </div>
-        <div class="slides__filter"><input class="form-control" type="text" ng-model="filterString" class="input"/></div>
+        <div class="slides__filter"><input class="input" type="text" ng-model="filterString" class="input" placeholder="filter"/></div>
     </header>
 
     <div ng-include="selectedTemplateUrl" class="slides__body"></div>

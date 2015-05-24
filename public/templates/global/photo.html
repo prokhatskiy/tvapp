@@ -1,9 +1,9 @@
 <div class="photo">
     <div class="photo__preview" ng-click="deleteImage(src)" ng-show="src">
-        <img ng-src="{{src}}" />
+        <img ng-src="{{src}}" class="photo__src"/>
     </div>
     <div class="photo__upload" ng-hide="src">
-        <span class="photot__upload-txt">Upload Photo</span>
-        <input type="file" name="image" id="image" accept="image/jpeg"/>
+        <span class="photo__upload-txt">Upload Photo</span>
+        <input type="file" name="image" id="image" accept="image/jpeg" class="photo__upload-input"/>
     </div>
 </div>

@@ -1,23 +1,23 @@
 <div class="form-group">
-    <label for="title" class="col-sm-2 control-label">Title</label>
+    <label for="title" class="form-group__label label">Title</label>
     <input type="text" class="form-group__field input" id="title" ng-model="currentData.title" required>
 </div>
 <div class="form-group">
-    <label for="description" class="col-sm-2 control-label">Description</label>
+    <label for="description" class="form-group__label label">Description</label>
     <textarea class="form-group__field input input_textarea" id="description" ng-model="currentData.description"></textarea>
 </div>
 <div class="form-group">
-    <label for="dateRangeStart"  class="col-sm-2 control-label">Date Range</label>
+    <label for="dateRangeStart"  class="form-group__label label">Date Range</label>
     <input type="text" class="form-group__field form-group__field_half input" id="dateRangeStart" ng-model="currentData.dateRangeStart" placeholder="Start Date" ui-date required>
     <input type="text" class="form-group__field form-group__field_half input" id="dateRangeEnd" ng-model="currentData.dateRangeEnd" placeholder="End Date" ui-date required>
 </div>
 <div class="form-group" ng-repeat="item in currentData.employees track by $index">
-    <label for="employee-name-{{$index}}" class="col-sm-2 control-label">Employee #{{$index+1}}</label>
+    <label for="employee-name-{{$index}}" class="form-group__label label">Employee #{{$index+1}}</label>
     <input type="text" class="form-group__field form-group__field_half input" id="employee-name-{{$index}}" ng-model="currentData.employees[$index].name" placeholder="Name" required>
     <input type="text" class="form-group__field form-group__field_half input" id="employee-date-{{$index}}" ng-model="currentData.employees[$index].date" placeholder="Birthday Date" ui-date required>
 </div>
 <div class="form-group" ng-show="currentData.employees.length === 0">
-    <label for="employee-name-0" class="col-sm-2 control-label">Employee #1</label>
+    <label for="employee-name-0" class="form-group__label label">Employee #1</label>
     <input type="text" class="form-group__field input" id="employee-name-0" ng-model="currentData.employees[0].name" placeholder="Name" required>
     <input type="text" class="form-group__field input" id="employee-date-0" ng-model="currentData.employees[0].date" placeholder="Birthday Date" ui-date required>
 </div>

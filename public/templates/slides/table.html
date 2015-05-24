@@ -12,7 +12,7 @@
             {{slide.slideType}}
         </td>
         <td class="slides-table__active">
-            {{slide.isActive}}
+            {{ (slide.isActive) ? 'Yes' : 'No'}}
         </td>
         <td class="slides-table__delete">
             <button ng-click="deleteSlide(slide._id)" class="btn btn_delete slides-table__delete">Delete Slide</button>

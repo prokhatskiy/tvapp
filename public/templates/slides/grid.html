@@ -1,13 +1,13 @@
 <div class="grid">
     <article class="grid__item" ng-repeat="slide in slides | filter: filterString">
         <a href="#{{ROUTES.ADMIN_EDIT}}/{{slide._id}}" class="grid__link">
-            <img src="{{slide.imageSrc || 'http://placehold.it/300x300&text=placeholder'}}" alt="{{slide.title}}" class="grid__photo">
-            <span class="grid__title">{{slide.title || slide.name}}</span>
+            <img src="{{slide.imageSrc || 'http://placehold.it/100x150&text=No_Photo'}}" alt="{{slide.title}}" class="grid__photo">
         </a>
 
         <div class="grid__description">
+            <div class="grid__title">{{slide.title || slide.name}}</div>
             <div class="grid__type">type: {{slide.slideType}}</div>
-            <div class="grid__active">active: {{slide.isActive}}</div>
+            <div class="grid__active">active: {{ (slide.isActive) ? 'Yes' : 'No'}}</div>
             <button ng-click="deleteSlide(slide._id)" class="btn btn_delete grid__delete">Delete Slide</button>
         </div>
     </article>
