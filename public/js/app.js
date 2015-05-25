@@ -50,7 +50,7 @@ tvapp
 
 'use strict';
 
-tvapp.controller('adminEditCtrl', ["$scope", "$routeParams", "$http", "SERVICES", "$timeout", "$location", "ROUTES", function($scope, $routeParams, $http, SERVICES, $timeout, $location, ROUTES) {
+tvapp.controller('adminEditCtrl', ["$scope", "$routeParams", "$http", "SERVICES", "$timeout", "$location", "ROUTES", "$rootScope", function($scope, $routeParams, $http, SERVICES, $timeout, $location, ROUTES, $rootScope) {
     var defaults,
         slideData,
         employeesTemplate = {'name' : '', date: ''};
@@ -115,9 +115,12 @@ tvapp.controller('adminEditCtrl', ["$scope", "$routeParams", "$http", "SERVICES"
             });
     }
 
-    $scope.save = function save() {
+    $scope.save = function save(stayOnPage) {
+        console.log($scope.currentData);
         $http.post(SERVICES.POST_SLIDE, $scope.currentData)
             .success(function() {
+                if (stayOnPage) return;
+
                 $location.path(ROUTES.ADMIN_ROOT);
             })
             .error(function(data, status) {
@@ -143,6 +146,17 @@ tvapp.controller('adminEditCtrl', ["$scope", "$routeParams", "$http", "SERVICES"
     $scope.addEmployee = function addEmployee() {
         $scope.currentData.employees.push(employeesTemplate);
     };
+
+    if (Boolean($routeParams.id)) {
+        $rootScope.$on('uiPhoto:deleted', function() {
+            $scope.currentData.imageSrc = '';
+            $scope.save(true);
+        });
+        $rootScope.$on('uiPhoto:uploaded', function(event, newImageName) {
+            $scope.currentData.imageSrc = newImageName;
+            $scope.save(true);
+        });
+    }
 }]);
 
 'use strict';
@@ -373,7 +387,7 @@ tvapp.directive('uiMessages', ["$timeout", function($timeout) {
         }
     };
 }]);
-tvapp.directive('uiPhoto', ["SERVICES", "$http", function(SERVICES, $http) {
+tvapp.directive('uiPhoto', ["SERVICES", "$http", "$rootScope", function(SERVICES, $http, $rootScope) {
     return {
         restrict: 'E',
         scope: {
@@ -397,7 +411,7 @@ tvapp.directive('uiPhoto', ["SERVICES", "$http", function(SERVICES, $http) {
                     })
                     .success(function(fileName) {
                         $scope.src = fileName;
-                        $scope.$broadcast('uiPhoto:uploaded');
+                        $rootScope.$broadcast('uiPhoto:uploaded', fileName);
                         $scope.loading -= 1;
                     })
                     .error(function(data, status) {
@@ -429,11 +443,10 @@ tvapp.directive('uiPhoto', ["SERVICES", "$http", function(SERVICES, $http) {
                 $scope.loading += 1;
                 $http.delete(SERVICES.DELETE_IMG + '?src=' + src)
                     .success(function() {
-                        console.log($scope.src);
                         $scope.loading -= 1;
                         $scope.src = '';
                         $input.val('');
-                        $scope.$broadcast('uiPhoto:deleted');
+                        $rootScope.$broadcast('uiPhoto:deleted');
                     })
                     .error(function(data, status) {
                         $scope.loading -= 1;

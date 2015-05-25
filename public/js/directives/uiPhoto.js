@@ -1,4 +1,4 @@
-tvapp.directive('uiPhoto', function(SERVICES, $http) {
+tvapp.directive('uiPhoto', function(SERVICES, $http, $rootScope) {
     return {
         restrict: 'E',
         scope: {
@@ -22,7 +22,7 @@ tvapp.directive('uiPhoto', function(SERVICES, $http) {
                     })
                     .success(function(fileName) {
                         $scope.src = fileName;
-                        $scope.$broadcast('uiPhoto:uploaded');
+                        $rootScope.$broadcast('uiPhoto:uploaded', fileName);
                         $scope.loading -= 1;
                     })
                     .error(function(data, status) {
@@ -54,11 +54,10 @@ tvapp.directive('uiPhoto', function(SERVICES, $http) {
                 $scope.loading += 1;
                 $http.delete(SERVICES.DELETE_IMG + '?src=' + src)
                     .success(function() {
-                        console.log($scope.src);
                         $scope.loading -= 1;
                         $scope.src = '';
                         $input.val('');
-                        $scope.$broadcast('uiPhoto:deleted');
+                        $rootScope.$broadcast('uiPhoto:deleted');
                     })
                     .error(function(data, status) {
                         $scope.loading -= 1;

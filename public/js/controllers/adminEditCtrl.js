@@ -1,6 +1,6 @@
 'use strict';
 
-tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES, $timeout, $location, ROUTES) {
+tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES, $timeout, $location, ROUTES, $rootScope) {
     var defaults,
         slideData,
         employeesTemplate = {'name' : '', date: ''};
@@ -65,9 +65,12 @@ tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES
             });
     }
 
-    $scope.save = function save() {
+    $scope.save = function save(stayOnPage) {
+        console.log($scope.currentData);
         $http.post(SERVICES.POST_SLIDE, $scope.currentData)
             .success(function() {
+                if (stayOnPage) return;
+
                 $location.path(ROUTES.ADMIN_ROOT);
             })
             .error(function(data, status) {
@@ -93,4 +96,15 @@ tvapp.controller('adminEditCtrl', function($scope, $routeParams, $http, SERVICES
     $scope.addEmployee = function addEmployee() {
         $scope.currentData.employees.push(employeesTemplate);
     };
+
+    if (Boolean($routeParams.id)) {
+        $rootScope.$on('uiPhoto:deleted', function() {
+            $scope.currentData.imageSrc = '';
+            $scope.save(true);
+        });
+        $rootScope.$on('uiPhoto:uploaded', function(event, newImageName) {
+            $scope.currentData.imageSrc = newImageName;
+            $scope.save(true);
+        });
+    }
 });
